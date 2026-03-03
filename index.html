@@ -301,6 +301,283 @@ function arr(a){return Array.isArray(a)?a:[];}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function lbl(list,id){if(!id)return'';var o=byId(list,id);return o?o.label:id;}
 
+/* ─── RESOURCE LIBRARY ───────────────────────────────────────────── */
+// Each resource: {id, title, type, url, why(d), show(d)}
+// type: 'onepager'|'blog'|'video'|'research'|'pdf'
+var RESOURCES=[
+
+  // ── ALWAYS SEND ──────────────────────────────────────────────────
+  {id:'overview_k12',
+   title:'Meet M2 / MirrorTalk — K12 Overview',
+   type:'onepager',
+   url:'https://www.swivl.com/wp-content/uploads/2025/02/Meet-M2MirrorTalk-K12-All-Audiences.pdf',
+   why:function(){return'Good for any prospect — covers the full M2 story in one page.';},
+   show:function(){return true;}},
+
+  {id:'video_2min',
+   title:'M2 2-minute overview video',
+   type:'video',
+   url:'https://vimeo.com/1101652484',
+   why:function(){return'Fastest way for a skeptical stakeholder to see M2 in action.';},
+   show:function(){return true;}},
+
+  // ── ELL / ML ─────────────────────────────────────────────────────
+  {id:'ell_onepager',
+   title:'M2: The AI co-teacher that speaks every language',
+   type:'onepager',
+   url:'https://www.swivl.com/wp-content/uploads/2026/02/M2-ELL-support.pdf',
+   why:function(d){return'They have ELL/ML students. This one-pager leads with the 10.6% stat and shows exactly how in-ear translation works.';},
+   show:function(d){return d.ellPop==='significant'||d.ellPop==='some';}},
+
+  {id:'ell_blog',
+   title:'Supporting multilingual learners beyond language (blog)',
+   type:'blog',
+   url:'https://www.swivl.com/2026/02/06/ell-mtss-support-m2/',
+   why:function(d){return'Connects ELL support to broader MTSS goals — good for curriculum or instruction leads.';},
+   show:function(d){return d.ellPop==='significant'||d.ellPop==='some';}},
+
+  // ── CTE / PERKINS V ──────────────────────────────────────────────
+  {id:'perkins',
+   title:'Perkins V Funding — CTE one-pager',
+   type:'onepager',
+   url:'https://www.swivl.com/wp-content/uploads/2025/04/MirrorTalk-M2-Perkins.pdf',
+   why:function(){return'M2 qualifies for Perkins V — send this if they have a CTE program and a budget conversation coming.';},
+   show:function(d){return arr(d.missions).indexOf('other')>=0||arr(d.products).some(function(p){return p==='other';})||String(d.missionOther||'').toLowerCase().indexOf('cte')>=0||String(d.contextNotes||'').toLowerCase().indexOf('cte')>=0||String(d.contextNotes||'').toLowerCase().indexOf('perkins')>=0||String(d.contextNotes||'').toLowerCase().indexOf('vocational')>=0;}},
+
+  // ── BUDGET / FUNDING ─────────────────────────────────────────────
+  {id:'title1',
+   title:'Title I Funds — M2 / MirrorTalk one-pager',
+   type:'onepager',
+   url:'https://www.swivl.com/wp-content/uploads/2024/10/Mirror-MirrorTalk-Title-I-One-Pager.pdf',
+   why:function(d){return'Budget is '+(d.budget==='unknown'?'unknown':'a concern')+'. Title I is a common funding path — this shows the alignment.';},
+   show:function(d){return d.budget==='unknown'||d.budget==='grant'||d.budget==='nextfy';}},
+
+  // ── TRADE-IN ─────────────────────────────────────────────────────
+  {id:'tradein',
+   title:'Trade-in Program — $250 per Swivl robot',
+   type:'pdf',
+   url:'https://www.swivl.com/wp-content/uploads/2024/10/Robot-Trade-In-Program.pdf',
+   why:function(d){return'They have existing Swivl robots. Each returned unit = $250 toward M2 — send this to reframe the budget conversation.';},
+   show:function(d){return d.currentSwivl==='active'||d.currentSwivl==='underused';}},
+
+  // ── PRIVACY / SECURITY / DPA ─────────────────────────────────────
+  {id:'privacy_msg',
+   title:'AI & Privacy — Mirror Privacy Message (PDF)',
+   type:'pdf',
+   url:'https://www.swivl.com/wp-content/uploads/2023/11/Mirror-Privacy-Message.pdf',
+   why:function(){return'Send this proactively whenever DPA, FERPA, or data privacy came up.';},
+   show:function(d){return arr(d.securityNeeds).length>0&&arr(d.securityNeeds).indexOf('none')<0;}},
+
+  {id:'security_overview',
+   title:'Security Overview (PDF)',
+   type:'pdf',
+   url:'https://www.swivl.com/wp-content/uploads/2023/08/Security-Overview.pdf',
+   why:function(){return'For IT directors or procurement — detailed security posture document.';},
+   show:function(d){return arr(d.securityNeeds).indexOf('dpa')>=0||arr(d.securityNeeds).indexOf('vendor')>=0||arr(d.securityNeeds).indexOf('ferpa')>=0||arr(d.stakeholderRoles).indexOf('IT / Security')>=0;}},
+
+  // ── ADMIN RUBRICS / DISTRICT ALIGNMENT ───────────────────────────
+  {id:'rubric_insights',
+   title:'M2 Insights Rubric (PDF)',
+   type:'pdf',
+   url:'https://www.swivl.com/wp-content/uploads/2024/10/Mirror-insights-rubric.pdf',
+   why:function(){return'Shows how M2 maps to evaluation frameworks — good for curriculum directors and principals.';},
+   show:function(d){return arr(d.features).indexOf('rubrics')>=0||arr(d.missions).indexOf('alignment')>=0||arr(d.missions).indexOf('coaching')>=0;}},
+
+  {id:'rubric_blog',
+   title:'How M2\'s AI Rubric Scoring aligns with expert evaluators (blog)',
+   type:'blog',
+   url:'https://www.swivl.com/2026/02/20/ai-rubric-scoring-swivl-m2/',
+   why:function(){return'Addresses the "can AI really score teaching?" objection directly.';},
+   show:function(d){return arr(d.features).indexOf('rubrics')>=0||arr(d.missions).indexOf('alignment')>=0;}},
+
+  {id:'rubric_builder_blog',
+   title:'Turning district priorities into consistent classroom feedback (blog)',
+   type:'blog',
+   url:'https://www.swivl.com/2025/12/23/m2-rubric-builder/',
+   why:function(){return'Explains the Rubric Builder and how it connects to district standards.';},
+   show:function(d){return arr(d.missions).indexOf('alignment')>=0||arr(d.missions).indexOf('coaching')>=0;}},
+
+  // ── INSTRUCTIONAL COACHING ────────────────────────────────────────
+  {id:'coaching_pdf',
+   title:'Instructional Coaching: A Reflective Practice (PDF)',
+   type:'pdf',
+   url:'https://www.swivl.com/wp-content/uploads/2025/10/Instructional-coaching-A-reflective-practice.pdf',
+   why:function(){return'Good for coaching leads and instructional directors — frames M2 as the tool that makes coaching scalable.';},
+   show:function(d){return arr(d.missions).indexOf('coaching')>=0||arr(d.missions).indexOf('growth')>=0||d.coachingPractice==='active'||d.coachingPractice==='partial';}},
+
+  {id:'coaching_blog',
+   title:'How M2 freed coaches to scale instructional excellence (user story)',
+   type:'blog',
+   url:'https://www.swivl.com/2025/11/06/m2-freed-coaches-to-scale/',
+   why:function(){return'Biome Charter School — real story of a coach who couldn\'t reach every teacher until M2.';},
+   show:function(d){return arr(d.missions).indexOf('coaching')>=0||arr(d.missions).indexOf('growth')>=0;}},
+
+  {id:'master_teacher_blog',
+   title:'The ultimate validation: how M2 earned the trust of a master teacher (user story)',
+   type:'blog',
+   url:'https://www.swivl.com/2025/10/02/m2-earned-trust-master-teacher/',
+   why:function(){return'Use this for skeptical veteran teachers or coaches who doubt AI can match expert judgment.';},
+   show:function(d){return d.coachingPractice==='no'||d.coachingPractice==='open'||trim(d.reaction).toLowerCase().indexOf('skeptic')>=0||trim(d.reaction).toLowerCase().indexOf('doubt')>=0||trim(d.reaction).toLowerCase().indexOf('not sure')>=0;}},
+
+  // ── TEACHER PD / EDTECH ROI ───────────────────────────────────────
+  {id:'pd_leaders',
+   title:'Differentiation Planning for Leaders (PDF)',
+   type:'pdf',
+   url:'https://www.swivl.com/wp-content/uploads/2025/01/M2-Differentiation-planning-for-leaders.pdf',
+   why:function(){return'For principals and PD organizers thinking about how M2 fits into professional learning design.';},
+   show:function(d){return arr(d.missions).indexOf('growth')>=0||arr(d.missions).indexOf('alignment')>=0||arr(d.stakeholderRoles).indexOf('Principal(s)')>=0||arr(d.stakeholderRoles).indexOf('Curriculum & Instruction')>=0;}},
+
+  {id:'pd_roi_blog',
+   title:'Maximizing your ROI: How PD protects your edtech investment (blog)',
+   type:'blog',
+   url:'https://www.swivl.com/2025/09/12/professional-development-edtech-roi/',
+   why:function(){return'For budget-conscious admins — shows that PD is what makes edtech investments actually pay off.';},
+   show:function(d){return d.budget==='nextfy'||d.budget==='unknown'||arr(d.missions).indexOf('growth')>=0;}},
+
+  {id:'rethink_prep',
+   title:'Rethinking Teacher Preparation (PDF)',
+   type:'pdf',
+   url:'https://www.swivl.com/wp-content/uploads/2025/01/Swivl-Rethinking-teacher-preparation.pdf',
+   why:function(){return'For higher ed or teacher prep program contacts.';},
+   show:function(d){return String(d.org||'').toLowerCase().indexOf('university')>=0||String(d.org||'').toLowerCase().indexOf('college')>=0||String(d.contextNotes||'').toLowerCase().indexOf('teacher prep')>=0||String(d.contextNotes||'').toLowerCase().indexOf('higher ed')>=0;}},
+
+  {id:'higher_ed',
+   title:'Meet M2 — Higher Ed / Teacher Prep one-pager',
+   type:'onepager',
+   url:'https://www.swivl.com/wp-content/uploads/2025/02/MeetM2-HE-Teacher-Prep.pdf',
+   why:function(){return'Specifically positioned for teacher preparation programs and higher ed contexts.';},
+   show:function(d){return String(d.org||'').toLowerCase().indexOf('university')>=0||String(d.org||'').toLowerCase().indexOf('college')>=0||String(d.contextNotes||'').toLowerCase().indexOf('teacher prep')>=0;}},
+
+  // ── STUDENT PARTICIPATION / ENGAGEMENT ───────────────────────────
+  {id:'participation_blog',
+   title:'M2 app: making participation the difference (blog)',
+   type:'blog',
+   url:'https://www.swivl.com/2026/01/28/m2app-making-participation-the-difference/',
+   why:function(){return'Directly addresses the participation mission — shows what the data looks like in practice.';},
+   show:function(d){return arr(d.missions).indexOf('participation')>=0||arr(d.features).indexOf('tips')>=0;}},
+
+  {id:'m2score_blog',
+   title:'The M2 score: what it measures and why it matters (blog)',
+   type:'blog',
+   url:'https://www.swivl.com/2026/01/22/m2-score-participation-measures-why-it-matters/',
+   why:function(){return'Explains the M2 participation score — good if data and measurable outcomes came up.';},
+   show:function(d){return arr(d.missions).indexOf('participation')>=0||arr(d.missions).indexOf('feedback')>=0;}},
+
+  {id:'inquiry_blog',
+   title:'M2 drives deeper inquiry — Kandice McGlaun user story',
+   type:'blog',
+   url:'https://www.swivl.com/2025/10/20/m2-drives-inquiry/',
+   why:function(){return'Real classroom story about student questioning and critical thinking improving with M2.';},
+   show:function(d){return arr(d.missions).indexOf('participation')>=0||arr(d.missions).indexOf('screens')>=0;}},
+
+  // ── MTSS ─────────────────────────────────────────────────────────
+  {id:'mtss_teacher',
+   title:'The missing piece in your MTSS framework (blog)',
+   type:'blog',
+   url:'https://www.swivl.com/2025/12/08/m2-mtss-teacher-support/',
+   why:function(){return'Positions M2 as the missing Tier 1-2 teacher support layer in MTSS.';},
+   show:function(d){return String(d.pain||'').toLowerCase().indexOf('mtss')>=0||String(d.contextNotes||'').toLowerCase().indexOf('mtss')>=0||String(d.success||'').toLowerCase().indexOf('mtss')>=0;}},
+
+  {id:'mtss_student',
+   title:'Empowering every learner: M2 for student support in MTSS (blog)',
+   type:'blog',
+   url:'https://www.swivl.com/2025/12/05/m2-mtss-student-support/',
+   why:function(){return'Student-focused MTSS framing — good when the conversation centered on student outcomes.';},
+   show:function(d){return String(d.pain||'').toLowerCase().indexOf('mtss')>=0||String(d.contextNotes||'').toLowerCase().indexOf('mtss')>=0;}},
+
+  // ── PILOT PATH ───────────────────────────────────────────────────
+  {id:'pilot_program',
+   title:'M2 Pilot Program overview (PDF)',
+   type:'pdf',
+   url:'https://www.swivl.com/wp-content/uploads/2024/08/Mirror-Pilot-Program.pdf',
+   why:function(){return'Route is pilot — send this so they know exactly what to expect: timeline, training, support.';},
+   show:function(d){return d.route==='pilot';}},
+
+  // ── QUOTE / PRICING PATH ─────────────────────────────────────────
+  {id:'license_onepager',
+   title:'MirrorTalk M2 License one-pager',
+   type:'onepager',
+   url:'https://www.swivl.com/wp-content/uploads/2025/04/MirrorTalk-M2-License.pdf',
+   why:function(){return'They want pricing — this covers licensing structure clearly before the formal quote.';},
+   show:function(d){return d.route==='quote';}},
+
+  {id:'educators_value',
+   title:'M2 Educators Share the Value (PDF)',
+   type:'pdf',
+   url:'https://www.swivl.com/wp-content/uploads/2025/05/M2-Educators-share-the-value.pdf',
+   why:function(){return'Peer voices making the case — useful when they\'re building internal buy-in before a budget decision.';},
+   show:function(d){return d.route==='quote'||d.route==='stakeholder';}},
+
+  // ── M2 + REFLECTIVITY ────────────────────────────────────────────
+  {id:'reflect_together',
+   title:'Mirror and Reflectivity Belong Together (PDF)',
+   type:'pdf',
+   url:'https://www.swivl.com/wp-content/uploads/2024/11/Mirror-and-Reflectivity-belong-together.pdf',
+   why:function(){return'They\'re considering both products — shows how M2 and Reflectivity complement each other.';},
+   show:function(d){return arr(d.products).indexOf('reflect')>=0;}},
+
+  {id:'m2_reflectivity',
+   title:'MirrorTalk M2 + Reflectivity one-pager',
+   type:'onepager',
+   url:'https://www.swivl.com/wp-content/uploads/2025/04/MirrorTalk-M2-Reflectivity.pdf',
+   why:function(){return'Positions the full Swivl ecosystem for districts that want both classroom AI and observation video.';},
+   show:function(d){return arr(d.products).indexOf('reflect')>=0;}},
+
+  // ── M2 vs ROBOT COMPARISON ───────────────────────────────────────
+  {id:'vs_robot',
+   title:'What\'s the difference between Swivl Robot & M2? (PDF)',
+   type:'pdf',
+   url:'https://www.swivl.com/wp-content/uploads/2025/02/M2-Robot-Difference.pdf',
+   why:function(){return'They have existing robots — this answers the "why upgrade?" question side by side.';},
+   show:function(d){return d.currentSwivl==='active'||d.currentSwivl==='underused'||arr(d.products).indexOf('upgrade')>=0;}},
+
+  // ── SEL / WELLBEING ──────────────────────────────────────────────
+  {id:'student_reflection',
+   title:'Prioritizing Student Reflection (PDF)',
+   type:'pdf',
+   url:'https://www.swivl.com/wp-content/uploads/2025/01/Prioritizing-student-reflection.pdf',
+   why:function(){return'SEL and student wellbeing came up — this frames M2\'s student reflection tools in that context.';},
+   show:function(d){return arr(d.missions).indexOf('sel')>=0||arr(d.features).indexOf('takeaways')>=0;}},
+
+  // ── HIGHER ORDER THINKING / SCREENS ─────────────────────────────
+  {id:'higher_order',
+   title:'Higher-Order Thinking in a World with AI (PDF)',
+   type:'pdf',
+   url:'https://www.swivl.com/wp-content/uploads/2024/12/Swivl-Higher-order-thinking-in-a-world-with-AI.pdf',
+   why:function(){return'Good for prospects worried about AI replacing teacher judgment or reducing critical thinking.';},
+   show:function(d){return arr(d.missions).indexOf('screens')>=0||String(d.reaction||'').toLowerCase().indexOf('ai')>=0||String(d.pain||'').toLowerCase().indexOf('screen')>=0;}},
+
+  // ── THIRD PARTY CREDIBILITY ───────────────────────────────────────
+  {id:'edtech_digest',
+   title:'Cool Tools — EdTech Digest feature',
+   type:'blog',
+   url:'https://www.edtechdigest.com/2025/03/07/swivl/',
+   why:function(){return'Third-party recognition — useful for skeptical prospects who want external validation.';},
+   show:function(d){return d.coachingPractice==='no'||d.coachingPractice==='open'||String(d.reaction||'').toLowerCase().indexOf('skeptic')>=0||String(d.reaction||'').toLowerCase().indexOf('hesit')>=0;}},
+
+  {id:'ditch_textbook',
+   title:'10 Ways to Teach with AI — Ditch That Textbook',
+   type:'blog',
+   url:'https://ditchthattextbook.com/co-teach-with-ai/',
+   why:function(){return'Independent educator voice on AI in classrooms — helps normalize M2 for teachers who are new to AI tools.';},
+   show:function(d){return arr(d.missions).indexOf('growth')>=0||String(d.reaction||'').toLowerCase().indexOf('ai')>=0;}}
+];
+
+var RES_TYPE_ICON={'onepager':'📄','blog':'📝','video':'▶️','research':'🔬','pdf':'📎'};
+var RES_TYPE_LBL={'onepager':'One-pager','blog':'Article / Story','video':'Video','research':'Research','pdf':'PDF'};
+
+function getResources(d){
+  d=d||S.data;
+  var matched=[];
+  for(var i=0;i<RESOURCES.length;i++){
+    var r=RESOURCES[i];
+    try{if(r.show(d))matched.push(r);}catch(e){}
+  }
+  // Cap at 7 — always send first, then by order
+  if(matched.length>7)matched=matched.slice(0,7);
+  return matched;
+}
+
 /* ─── QUALIFICATION ───────────────────────────────────────────────── */
 function qual(d){
   d=d||S.data;var s=0,m=[];
@@ -810,6 +1087,8 @@ function S7(){
   '<div style="margin-bottom:18px"><div class="h2">Follow-up email</div>'+
   '<div class="sub">Edit the email below, then copy or send. The Tier '+q.tier+' score and routing summary are below.</div></div>'+
 
+  ResourcePanel()+
+
   '<div class="card hl">'+
     '<div class="lbl">Subject line</div>'+
     '<input class="email-subject" data-f="emailSubject" type="text" value="'+esc(d.emailSubject)+'" placeholder="Email subject..." />'+
@@ -1150,6 +1429,38 @@ function exportPDF(){
   w.document.write(html);w.document.close();
 }
 
+/* ─── RESOURCE PANEL ─────────────────────────────────────────────── */
+function ResourcePanel(){
+  var d=S.data,res=getResources(d);
+  if(!res.length)return'';
+  var cards='';
+  for(var i=0;i<res.length;i++){
+    var r=res[i];
+    var icon=RES_TYPE_ICON[r.type]||'📎';
+    var typeLbl=RES_TYPE_LBL[r.type]||r.type;
+    var why='';try{why=r.why(d);}catch(e){}
+    cards+='<div style="background:#fff;border:1.5px solid #E8E8ED;border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;gap:14px;align-items:flex-start">'+
+      '<div style="font-size:20px;line-height:1;margin-top:2px;flex-shrink:0">'+icon+'</div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'+
+          '<a href="'+esc(r.url)+'" target="_blank" rel="noopener" style="font-weight:800;font-size:14px;color:#8E47FF;text-decoration:none;line-height:1.2">'+esc(r.title)+'</a>'+
+          '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#7A7A7A;background:#F5F5F7;border-radius:5px;padding:2px 6px">'+esc(typeLbl)+'</span>'+
+        '</div>'+
+        '<div style="font-size:12px;color:#555;line-height:1.45">'+esc(why)+'</div>'+
+      '</div>'+
+      '<button class="btn sm o" data-action="copyResUrl" data-url="'+esc(r.url)+'" style="flex-shrink:0;font-size:11px;padding:5px 10px">Copy link</button>'+
+    '</div>';
+  }
+  return'<div class="card hl" style="margin-bottom:18px">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'+
+      '<div class="lbl" style="margin:0">What to send ('+res.length+')</div>'+
+      '<button class="btn sm o" data-action="copyAllResUrls">Copy all links</button>'+
+    '</div>'+
+    '<div class="sub" style="margin-bottom:12px">Based on what came up in this meeting. Click any title to open, or copy the link to add to the email.</div>'+
+    cards+
+  '</div>';
+}
+
 /* ─── RENDER ─────────────────────────────────────────────────────── */
 function render(){
   var app=document.getElementById('app');if(!app)return;
@@ -1182,6 +1493,12 @@ document.addEventListener('click',function(e){
   if(a==='saveRec')return saveRec();
   if(a==='viewRec')return viewRec(el.getAttribute('data-id'));
   if(a==='delRec')return delRec(el.getAttribute('data-id'));
+  if(a==='copyResUrl'){var u=el.getAttribute('data-url');clip(u,'Link copied.');return;}
+  if(a==='copyAllResUrls'){
+    var res=getResources(S.data);
+    var txt=res.map(function(r){return r.title+'\n'+r.url;}).join('\n\n');
+    clip(txt,'All links copied.');return;
+  }
   if(a==='copyEmail')return copyEmail();
   if(a==='regenEmail')return regenEmail();
   if(a==='emailSelf')return emailSelf();
