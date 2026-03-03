@@ -1,1203 +1,1195 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Swivl · Meeting Companion</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Swivl · SDR Meeting Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="icon" href="https://www.swivl.com/wp-content/uploads/2025/03/swivl-designmark-67c9a53c6ab0d.webp" type="image/webp"/>
 <style>
-/* ─── RESET & BASE ──────────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:#F5F5F7;color:#000;-webkit-font-smoothing:antialiased;min-height:100vh;padding-bottom:60px}
-input,textarea,button,select{font-family:inherit}
-button{cursor:pointer;transition:filter .12s,transform .1s}
-button:hover:not(:disabled){filter:brightness(.93)}
-button:active:not(:disabled){transform:scale(.98)}
-button:disabled{cursor:not-allowed;opacity:.45}
-input,textarea{display:block;width:100%;background:#fff;border:1.5px solid #E2E2E5;border-radius:8px;padding:11px 13px;font-size:14px;color:#000;line-height:1.5;transition:border-color .15s,box-shadow .15s}
-input:focus,textarea:focus{outline:none;border-color:#8E47FF;box-shadow:0 0 0 3px rgba(142,71,255,.12)}
+body{font-family:Inter,-apple-system,sans-serif;background:#F5F5F7;color:#000;-webkit-font-smoothing:antialiased;min-height:100vh}
+input,textarea,button,select{font-family:inherit;font-size:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.35}
 textarea{resize:vertical}
-a{color:#8E47FF;text-decoration:none}
-a:hover{text-decoration:underline}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#8E47FF!important;box-shadow:0 0 0 3px rgba(142,71,255,.12)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#DDD;border-radius:3px}
 
-/* ─── LAYOUT ────────────────────────────────────────────────────────────── */
-.wrap{max-width:700px;margin:0 auto;padding:28px 20px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+/* Layout */
+.wrap{max-width:680px;margin:0 auto;padding:28px 20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.step-in{animation:si .15s ease}
+@keyframes si{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
-/* ─── CARD ──────────────────────────────────────────────────────────────── */
-.card{background:#fff;border:1.5px solid #E2E2E5;border-radius:12px;padding:20px;margin-bottom:14px}
-.card.accent-purple{border-left:4px solid #8E47FF}
-.card.accent-green{border-left:4px solid #34C759}
-.card.accent-orange{border-left:4px solid #FF8F00}
-.card.accent-grey{border-left:4px solid #7A7A7A}
-.card.accent-blue{border-left:4px solid #5894F7}
-.card.accent-red{border-left:4px solid #F5555A}
+/* Topbar */
+.topbar{background:#fff;border-bottom:1.5px solid #E8E8ED;position:sticky;top:0;z-index:20;
+  padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand-ctx{font-size:13px;color:#7A7A7A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:12px;
+  padding-left:12px;border-left:1px solid #E8E8ED}
 
-/* ─── TILES / CHIPS ─────────────────────────────────────────────────────── */
-.tile{background:#fff;border:1.5px solid #E2E2E5;border-radius:10px;padding:13px 15px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .13s;user-select:none;margin-bottom:0}
-.tile:hover{border-color:#8E47FF;background:#FAF8FF}
-.tile.sel{border-color:#8E47FF;background:rgba(142,71,255,.07)}
-.tile .chk{width:20px;height:20px;border-radius:50%;border:2px solid #E2E2E5;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .13s;font-size:11px;color:#fff;font-weight:800}
-.tile.sel .chk{background:#8E47FF;border-color:#8E47FF}
-.tile-label{flex:1;font-weight:600;font-size:14px;color:#000;line-height:1.3}
-.tile-sub{font-size:12px;color:#7A7A7A;margin-top:2px;font-weight:400}
-.tile.sel .tile-label{color:#8E47FF}
-/* color variants */
-.tile.c-green.sel{border-color:#34C759;background:rgba(52,199,89,.07)} .tile.c-green.sel .tile-label{color:#34C759} .tile.c-green.sel .chk{background:#34C759;border-color:#34C759}
-.tile.c-orange.sel{border-color:#FF8F00;background:rgba(255,143,0,.07)} .tile.c-orange.sel .tile-label{color:#FF8F00} .tile.c-orange.sel .chk{background:#FF8F00;border-color:#FF8F00}
-.tile.c-blue.sel{border-color:#5894F7;background:rgba(88,148,247,.07)} .tile.c-blue.sel .tile-label{color:#5894F7} .tile.c-blue.sel .chk{background:#5894F7;border-color:#5894F7}
-.tile.c-grey.sel{border-color:#7A7A7A;background:rgba(122,122,122,.07)} .tile.c-grey.sel .tile-label{color:#7A7A7A} .tile.c-grey.sel .chk{background:#7A7A7A;border-color:#7A7A7A}
-.tile.c-teal.sel{border-color:#5BC1BB;background:rgba(91,193,187,.07)} .tile.c-teal.sel .tile-label{color:#5BC1BB} .tile.c-teal.sel .chk{background:#5BC1BB;border-color:#5BC1BB}
-.tile.c-red.sel{border-color:#F5555A;background:rgba(245,85,90,.07)} .tile.c-red.sel .tile-label{color:#F5555A} .tile.c-red.sel .chk{background:#F5555A;border-color:#F5555A}
+/* Buttons */
+.btn{border-radius:10px;border:1.5px solid #E8E8ED;padding:10px 18px;font-size:13px;font-weight:700;
+  line-height:1;background:#F5F5F7;color:#7A7A7A;transition:filter .12s,background .12s}
+.btn:hover:not(:disabled){filter:brightness(.96)}
+.btn.p{background:#8E47FF;border-color:#8E47FF;color:#fff}
+.btn.o{background:transparent;color:#000;border-color:#E8E8ED}
+.btn.sm{padding:7px 12px;font-size:12px;border-radius:8px}
+.btn.danger{background:transparent;border-color:#F5555A;color:#F5555A}
 
-.chip{display:inline-flex;align-items:center;gap:5px;border:1.5px solid #E2E2E5;border-radius:20px;padding:6px 14px;font-size:13px;cursor:pointer;transition:all .12s;user-select:none;background:#fff;color:#7A7A7A;font-weight:500;margin:0 6px 8px 0}
-.chip:hover{border-color:#8E47FF;color:#8E47FF}
-.chip.sel{border-color:#8E47FF;background:rgba(142,71,255,.09);color:#8E47FF;font-weight:600}
+/* Cards */
+.card{background:#fff;border:1.5px solid #E8E8ED;border-radius:14px;padding:18px;margin-bottom:12px}
+.card.hl{border-left:3px solid #8E47FF}
+.lbl{color:#7A7A7A;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;margin-bottom:8px}
+.h2{font-size:21px;font-weight:800;letter-spacing:-.4px;margin-bottom:6px}
+.sub{color:#7A7A7A;font-size:14px;line-height:1.55}
 
-/* ─── BUTTONS ───────────────────────────────────────────────────────────── */
-.btn{border-radius:9px;padding:12px 22px;font-weight:600;font-size:14px;border:1.5px solid transparent;display:inline-flex;align-items:center;gap:7px;justify-content:center;line-height:1}
-.btn-primary{background:#8E47FF;color:#fff;border-color:#8E47FF}
-.btn-outline{background:transparent;color:#8E47FF;border-color:#8E47FF}
-.btn-ghost{background:transparent;color:#7A7A7A;border-color:#E2E2E5}
-.btn-green{background:#34C759;color:#fff;border-color:#34C759}
-.btn-blue{background:#5894F7;color:#fff;border-color:#5894F7}
-.btn-sm{padding:8px 16px;font-size:12px;border-radius:7px}
-.btn-lg{padding:15px 30px;font-size:15px;font-weight:700}
-.btn-full{width:100%}
-.btn-red-outline{background:transparent;color:#F5555A;border-color:#F5555A}
+/* Inputs */
+.in{width:100%;background:#fff;border:1.5px solid #E8E8ED;border-radius:10px;padding:10px 12px;
+  font-size:14px;line-height:1.5;color:#000;transition:border-color .12s}
+select.in{cursor:pointer}
 
-/* ─── LABELS ────────────────────────────────────────────────────────────── */
-.lbl{font-size:11px;font-weight:700;color:#7A7A7A;text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px;display:block}
-.page-title{font-size:23px;font-weight:700;color:#000;letter-spacing:-.3px;margin-bottom:6px}
-.page-sub{color:#7A7A7A;font-size:14px;line-height:1.6;margin-bottom:22px}
-.section-head{font-size:11px;font-weight:700;color:#7A7A7A;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+/* Progress */
+.prog{margin-bottom:22px}
+.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.prog-label{font-size:12px;font-weight:700;color:#8E47FF}
+.prog-pct{font-size:12px;color:#7A7A7A}
+.prog-bar{height:3px;background:#EBEBED;border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:#8E47FF;border-radius:3px;transition:width .25s}
 
-/* ─── PROGRESS ──────────────────────────────────────────────────────────── */
-.progress-wrap{margin-bottom:28px}
-.progress-meta{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:#8E47FF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
-.progress-bar{height:3px;background:#E2E2E5;border-radius:3px;overflow:hidden}
-.progress-fill{height:100%;background:#8E47FF;border-radius:3px;transition:width .35s ease}
+/* Tiles — ONE color scheme only (purple when selected, neutral otherwise) */
+.tiles{display:grid;gap:8px}
+.tiles.two{grid-template-columns:1fr 1fr}
+.tile{background:#fff;border:1.5px solid #E8E8ED;border-radius:12px;padding:12px 14px;
+  display:flex;gap:12px;align-items:flex-start;cursor:pointer;
+  transition:border-color .13s,background .13s;user-select:none}
+.tile:hover{border-color:#C4A0FF}
+.tile.sel{border-color:#8E47FF;background:rgba(142,71,255,.06)}
+.tile-body{flex:1;min-width:0}
+.tile-title{font-size:14px;font-weight:700;color:#000;line-height:1.25}
+.tile-sub{font-size:12px;color:#7A7A7A;margin-top:3px;line-height:1.35}
+.tile.sel .tile-title{color:#8E47FF}
+.tile-dot{width:18px;height:18px;border-radius:50%;border:2px solid #DDD;flex-shrink:0;margin-top:2px;
+  display:flex;align-items:center;justify-content:center;transition:all .13s}
+.tile.sel .tile-dot{border-color:#8E47FF;background:#8E47FF}
+.tile-dot .ck{font-size:9px;font-weight:900;color:#fff}
 
-/* ─── STICKY HEADER ─────────────────────────────────────────────────────── */
-.sticky-hdr{background:#fff;border-bottom:1px solid #E2E2E5;padding:13px 24px;position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center}
-.hdr-left{display:flex;align-items:center;gap:14px}
-.hdr-prospect{font-size:13px;font-weight:500;color:#7A7A7A}
-.hdr-divider{width:1px;height:18px;background:#E2E2E5}
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{display:inline-flex;align-items:center;gap:5px;background:#F5F5F7;border:1.5px solid #E8E8ED;
+  border-radius:999px;padding:7px 13px;font-size:13px;color:#7A7A7A;cursor:pointer;
+  transition:all .13s;user-select:none}
+.chip:hover{border-color:#C4A0FF}
+.chip.sel{border-color:#8E47FF;background:rgba(142,71,255,.08);color:#8E47FF;font-weight:700}
+.chip.sel::before{content:'✓ ';font-size:10px;font-weight:900}
 
-/* ─── SWIVL LOGO ────────────────────────────────────────────────────────── */
-.swivl-logo{font-family:'Georgia',serif;font-style:italic;font-weight:700;color:#000;user-select:none;line-height:1}
+/* Tags */
+.tag{display:inline-flex;align-items:center;padding:3px 8px;border-radius:6px;font-size:10px;
+  font-weight:800;letter-spacing:.8px;text-transform:uppercase}
+.tag.A{background:rgba(52,199,89,.15);color:#1A9440}
+.tag.B{background:rgba(142,71,255,.14);color:#8E47FF}
+.tag.C{background:rgba(255,143,0,.14);color:#CC7200}
+.tag.D{background:rgba(245,85,90,.14);color:#D4262B}
 
-/* ─── SIGNAL PULSE (live capture) ──────────────────────────────────────── */
-.signal-badge{display:inline-block;background:#F5555A15;color:#F5555A;border:1px solid #F5555A40;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+/* Callout */
+.callout{background:rgba(142,71,255,.05);border:1.5px solid rgba(142,71,255,.20);border-radius:12px;
+  padding:14px 16px;margin-bottom:12px}
+.callout h4{font-size:13px;font-weight:800;margin-bottom:4px}
+.callout p{font-size:13px;color:#555;line-height:1.55}
 
-/* ─── RECOMMENDATION CARD ──────────────────────────────────────────────── */
-.rec-card{border-radius:12px;padding:20px;margin-bottom:14px;border:2px solid transparent}
-.rec-card.primary{border-color:#8E47FF;background:linear-gradient(135deg,rgba(142,71,255,.06),rgba(142,71,255,.02))}
-.rec-card.secondary{border-color:#E2E2E5;background:#fff}
+/* Gates (clarity checklist) */
+.gate{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;
+  border-radius:9px;border:1px solid #EBEBED;background:#fff;margin-bottom:6px}
+.gate b{font-size:13px}
+.ok{color:#1A9440;font-size:12px;font-weight:800}
+.miss{color:#CC7200;font-size:12px;font-weight:800}
 
-/* ─── NEXT STEP OPTION ──────────────────────────────────────────────────── */
-.ns-option{border:1.5px solid #E2E2E5;border-radius:10px;padding:14px 16px;display:flex;align-items:flex-start;gap:13px;cursor:pointer;transition:all .13s;margin-bottom:8px;background:#fff;user-select:none}
-.ns-option:hover{border-color:#8E47FF;background:#FAF8FF}
-.ns-option.sel{border-color:#8E47FF;background:rgba(142,71,255,.06)}
-.ns-option.recommended{border-color:#8E47FF}
-.ns-rec-badge{background:#8E47FF;color:#fff;border-radius:4px;padding:2px 7px;font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-left:8px;vertical-align:middle}
-.ns-option .chk{width:20px;height:20px;border-radius:50%;border:2px solid #E2E2E5;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .13s;font-size:11px;color:#fff;font-weight:800}
-.ns-option.sel .chk{background:#8E47FF;border-color:#8E47FF}
+/* Summary rows */
+.sr{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #F2F2F5}
+.sr:last-child{border-bottom:0}
+.sr-l{font-size:11px;color:#7A7A7A;font-weight:600;width:180px;flex-shrink:0;padding-top:1px}
+.sr-v{font-size:13px;line-height:1.5}
 
-/* ─── SUMMARY ───────────────────────────────────────────────────────────── */
-.sum-row{display:flex;gap:14px;padding:8px 0;border-bottom:1px solid #EBEBED;align-items:flex-start}
-.sum-label{color:#7A7A7A;font-size:12px;font-weight:500;width:170px;flex-shrink:0;padding-top:1px}
-.sum-value{color:#000;font-size:13px;line-height:1.5;flex:1}
-.sum-value.hi{color:#8E47FF;font-weight:600}
-.sum-value.green{color:#34C759;font-weight:600}
-.sum-value.orange{color:#FF8F00;font-weight:600}
+/* Calendar */
+.cal-wrap{margin-top:8px}
+.cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cal-nav button{background:none;border:1.5px solid #E8E8ED;border-radius:8px;padding:5px 10px;
+  font-size:13px;cursor:pointer;color:#000}
+.cal-nav button:hover{border-color:#8E47FF;color:#8E47FF}
+.cal-month{font-size:14px;font-weight:700}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day-hdr{font-size:10px;font-weight:700;color:#7A7A7A;text-align:center;padding:4px 0}
+.cal-day{font-size:13px;text-align:center;padding:7px 4px;border-radius:8px;cursor:pointer;
+  border:1.5px solid transparent;transition:all .12s;line-height:1}
+.cal-day:hover:not(.cal-past):not(.cal-empty){border-color:#C4A0FF;background:rgba(142,71,255,.06)}
+.cal-day.cal-sel{background:#8E47FF;color:#fff;border-color:#8E47FF;font-weight:700}
+.cal-day.cal-past{color:#CCC;cursor:default}
+.cal-day.cal-empty{cursor:default}
+.cal-day.cal-today{border-color:#8E47FF;color:#8E47FF;font-weight:700}
 
-/* ─── NAV ROW ───────────────────────────────────────────────────────────── */
-.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:18px;border-top:1px solid #E2E2E5}
+/* Email editor */
+.email-editor{width:100%;min-height:320px;background:#fff;border:1.5px solid #E8E8ED;border-radius:12px;
+  padding:16px;font-size:14px;line-height:1.65;color:#000;resize:vertical}
+.email-subject{width:100%;background:#fff;border:1.5px solid #E8E8ED;border-radius:10px;
+  padding:10px 14px;font-size:14px;font-weight:600;color:#000;margin-bottom:8px}
 
-/* ─── HOME ──────────────────────────────────────────────────────────────── */
-.home-hero{text-align:center;padding:60px 20px 40px}
-.home-steps{background:#fff;border-radius:14px;border:1.5px solid #E2E2E5;padding:24px 28px;margin-bottom:24px}
-.home-step{display:flex;gap:15px;padding:12px 0;align-items:flex-start}
-.home-step:not(:last-child){border-bottom:1px solid #EBEBED}
-.step-num{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+/* Nav row */
+.navrow{display:flex;justify-content:space-between;align-items:center;margin-top:20px;
+  padding-top:14px;border-top:1px solid #E8E8ED;gap:12px}
 
-/* ─── RECORD CARD ───────────────────────────────────────────────────────── */
-.rec-row{background:#fff;border:1.5px solid #E2E2E5;border-radius:12px;padding:18px 20px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:14px}
+/* Toast */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:#000;color:#fff;
+  padding:10px 18px;border-radius:999px;font-size:13px;z-index:99;opacity:0;pointer-events:none;transition:opacity .15s}
+.toast.show{opacity:.92}
 
-/* ─── TAG ───────────────────────────────────────────────────────────────── */
-.tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase}
+/* Records */
+.rec{background:#fff;border:1.5px solid #E8E8ED;border-radius:12px;padding:16px;margin-bottom:10px}
 
-/* ─── DEPLOYMENT SNAPSHOT ──────────────────────────────────────────────── */
-.deploy-box{background:linear-gradient(135deg,#FAF8FF,#F5F5F7);border:2px solid #8E47FF30;border-radius:14px;padding:22px;margin-bottom:14px}
-.deploy-line{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #EBEBED;font-size:14px}
-.deploy-line:last-child{border-bottom:none}
-.deploy-total{font-size:18px;font-weight:700;color:#8E47FF;margin-top:12px}
-
-/* ─── ANIMATIONS ────────────────────────────────────────────────────────── */
-.fade{animation:fd .25s ease}
-@keyframes fd{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
-/* ─── PRINT ─────────────────────────────────────────────────────────────── */
-@media print{
-  .no-print{display:none!important}
-  body{background:#fff;padding:0}
-  .wrap{padding:10px}
-  .card{break-inside:avoid;border:1px solid #ddd;box-shadow:none}
-}
-
-/* ─── RESPONSIVE ────────────────────────────────────────────────────────── */
-@media(max-width:580px){
-  .grid2{grid-template-columns:1fr}
-  .grid3{grid-template-columns:1fr 1fr}
-}
+@media(max-width:680px){.grid2{grid-template-columns:1fr}.tiles.two{grid-template-columns:1fr}.brand-ctx{display:none}}
 </style>
 </head>
 <body>
 <div id="app"></div>
-
+<div id="toast" class="toast"></div>
 <script>
-'use strict';
+/* ─── BRAND ─────────────────────────────────────────────────────── */
+var WM='https://www.swivl.com/wp-content/uploads/2025/03/swivl-wordmark-black-67c9a53d10afa.webp';
+function wm(h){return'<img src="'+WM+'" alt="Swivl" style="height:'+h+'px;width:auto;display:block"/>';}
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   1. DATA
-═══════════════════════════════════════════════════════════════════════════ */
-
-const COLORS = {
-  purple:'#8E47FF', blue:'#5894F7', orange:'#FF8F00',
-  green:'#34C759', red:'#F5555A', teal:'#5BC1BB', grey:'#7A7A7A'
-};
-
-const EXPECTATIONS = [
-  {id:'learn',   icon:'📚', label:'Learn what Swivl can do'},
-  {id:'demo',    icon:'👁️',  label:'See it in action today'},
-  {id:'fit',     icon:'🔍', label:'Understand if it fits our needs'},
-  {id:'pricing', icon:'💬', label:'Get a general sense of investment'},
-  {id:'compare', icon:'⚖️',  label:'See how it compares to what we use now'},
-  {id:'buyin',   icon:'🤝', label:'Build support with our team'},
-  {id:'grant',   icon:'🏷️', label:'Explore funding or grant alignment'},
-  {id:'other',   icon:'✏️',  label:'Something specific — we can share'}
+/* ─── DATA DEFINITIONS ───────────────────────────────────────────── */
+var MISSIONS=[
+  {id:'instruction', label:'Improving instruction quality'},
+  {id:'language',    label:'Supporting language learners (ELL/ML)'},
+  {id:'growth',      label:'Teacher growth & PD'},
+  {id:'coaching',    label:'Instructional coaching & observation'},
+  {id:'participation',label:'Increasing student participation'},
+  {id:'feedback',    label:'Less-judgmental teacher feedback'},
+  {id:'alignment',   label:'School or district-wide alignment'},
+  {id:'screens',     label:'Reducing screen dependence'},
+  {id:'sel',         label:'SEL & student wellbeing'},
+  {id:'recording',   label:'Video recording (boards, ed TPA, etc.)'},
+  {id:'other',       label:'Other'}
 ];
 
-const PRIORITIES = [
-  {id:'ell',      icon:'🌐', label:'ELL / Language support',          color:'teal', signal:'m2'},
-  {id:'coaching', icon:'🎥', label:'Instructional coaching & video',  color:'blue', signal:'cx_or_m2'},
-  {id:'mtss',     icon:'📋', label:'MTSS / documentation & evidence', color:'purple', signal:'m2'},
-  {id:'pd',       icon:'🛠️', label:'Teacher professional development', color:'blue', signal:'m2'},
-  {id:'student',  icon:'📈', label:'Student growth & outcomes',        color:'green', signal:'m2'},
-  {id:'sel',      icon:'❤️',  label:'SEL & student wellbeing',         color:'red', signal:'m2'},
-  {id:'assess',   icon:'📝', label:'Formative assessment',             color:'purple', signal:'m2'},
-  {id:'reflect',  icon:'🪞', label:'Building a culture of reflection', color:'purple', signal:'m2'},
-  {id:'screen',   icon:'📵', label:'Reducing screen dependence',       color:'orange', signal:'m2'},
-  {id:'walkthru', icon:'👀', label:'Classroom walkthroughs & obs.',   color:'blue', signal:'cx_or_m2'},
-  {id:'absentee', icon:'📊', label:'Chronic absenteeism / engagement', color:'orange', signal:'m2'},
-  {id:'sped',     icon:'♿', label:'SPED / differentiated instruction', color:'teal', signal:'m2'}
+var M2_FEATS=[
+  {id:'tips',      label:'Live teacher tips',             desc:'Tap the screen mid-class — instant suggestions for participation, transitions, checks for understanding'},
+  {id:'guides',    label:'Lesson guides',                 desc:'One tap generates a whole-class or small-group activity, no planning required'},
+  {id:'ell',       label:'Language learner support',      desc:'In-ear translation for up to 9 students in 140+ languages; on-demand whole-class translation'},
+  {id:'feedback',  label:'Post-class feedback report',    desc:'Auto-generated: teaching breakdown, participation data, framework scores — private to the teacher first'},
+  {id:'takeaways', label:'Takeaways & exit tickets',      desc:'Summaries, formative assessments, and suggested next-class activities'},
+  {id:'rubrics',   label:'Admin rubrics & frameworks',    desc:'District standards and evaluation rubrics loaded on the back end — everyone scored on the same criteria'},
+  {id:'recording', label:'Flexible recording',            desc:'Active or silent observer mode. Drop-in replacement for current Swivl robots'},
+  {id:'coaching',  label:'Share with coaches & admin',    desc:'Teacher controls sharing — reports can go to coaches and admin to support PD'}
+];
+var FEAT_LIMIT=3;
+
+var PRODUCTS=[
+  {id:'m2',      label:'M2'},
+  {id:'m2talk',  label:'M2Talk'},
+  {id:'bundle',  label:'M2 + M2Talk bundle'},
+  {id:'reflect', label:'Reflectivity'},
+  {id:'upgrade', label:'Upgrade from existing Swivl robots'},
+  {id:'other',   label:'Other / still exploring'}
 ];
 
-const M2_FEATURES = [
-  {id:'track',    icon:'📷', label:'180° auto-tracking camera'},
-  {id:'audio',    icon:'🎙️', label:'High-quality audio, audio-first approach'},
-  {id:'tips',     icon:'💡', label:'AI real-time tips & takeaways in class'},
-  {id:'m2talk',   icon:'🤖', label:'One-touch M2 Talk (AI co-teacher)'},
-  {id:'mirrortalk',icon:'🪞',label:'MirrorTalk student reflection & assessment'},
-  {id:'summaries',icon:'📄', label:'End-of-class summaries for teachers'},
-  {id:'activities',icon:'🎯',label:'Guided student activities & station work'},
-  {id:'multidock', icon:'🔌',label:'Multi-dock / multi-remote group audio'},
-  {id:'language',  icon:'🌐',label:'Language translation & ELL in-ear support'},
-  {id:'dashboard', icon:'📊',label:'Admin dashboard & instructional insights'},
-  {id:'sharing',   icon:'🔗',label:'Sharing class summaries with students/parents'},
-  {id:'recording', icon:'🎬',label:'Video recording for coaching & reflection'}
+var CURR_SWIVL=[
+  {id:'active',    label:'Yes — active users',         sub:'Recording, coaching, PD'},
+  {id:'underused', label:'Yes — underutilized',        sub:'Mostly a recording stand or checkout model'},
+  {id:'no',        label:'No — new to Swivl',          sub:'No existing hardware'},
+  {id:'unknown',   label:'Unknown',                    sub:''}
 ];
 
-const CX_FEATURES = [
-  {id:'cx_track',  icon:'🤖', label:'Auto-tracking robot — follows the teacher'},
-  {id:'cx_audio',  icon:'🎤', label:'Strong teacher audio + optional student mics'},
-  {id:'cx_coach',  icon:'🎥', label:'Video playback for coaching conversations'},
-  {id:'cx_simple', icon:'✅', label:'Simple, reliable — no AI, just video'},
-  {id:'cx_reflect',icon:'🪞', label:'Reflectivity software for video coaching PD'},
-  {id:'cx_existing',icon:'🔄',label:'We already have Swivl robots'}
+var COACHING=[
+  {id:'active',  label:'Yes — active video coaching program', sub:'Teachers record and reflect regularly'},
+  {id:'partial', label:'Some — limited or inconsistent',      sub:'A few coaches use it; not systematic'},
+  {id:'no',      label:'No — not currently a practice',       sub:'Feedback is observation-based only'},
+  {id:'open',    label:'No — but want to build this',         sub:'Leadership sees this as a goal'}
 ];
 
-const NEXT_STEPS = [
-  {id:'virtual_demo',   icon:'💻', label:'Virtual M2 Demo',                     sub:'30-min live walkthrough — former educator leads, great for including your team',     rec_signals:['demo','learn','fit'],                   owner:'Jenn (CS)'},
-  {id:'am_meeting',     icon:'📅', label:'2nd Meeting with Account Manager',    sub:'Discovery deep-dive and storyselling — AM tailors the conversation to your goals',    rec_signals:['pricing','fit','buyin'],                owner:'AM'},
-  {id:'am_quote',       icon:'💰', label:'Formal Quote & Proposal Meeting',     sub:'AM builds a deployment model and quote based on everything we discussed today',       rec_signals:['pricing','ready'],                     owner:'AM'},
-  {id:'onsite_trial',   icon:'🏫', label:'30-Day On-Site Trial',                sub:'Unit ships to you — brief kickoff call to set goals, select teachers, align on timing', rec_signals:['fit','hands_on','cx_existing'],       owner:'SDR + AM'},
-  {id:'rep_visit',      icon:'👤', label:'Swivl Rep On-Site Visit',             sub:'We bring a unit to your location — you see it live in your building',                   rec_signals:['hands_on','demo','cx_or_m2'],          owner:'AM'},
-  {id:'device_ship',    icon:'📦', label:'Demo Device Shipment (DDS)',          sub:'We ship a device to you to explore at your own pace — return in two weeks',            rec_signals:['fit','hands_on'],                      owner:'Rachel (CS)'},
-  {id:'security',       icon:'🔒', label:'IT / Security Review Meeting',        sub:'Technical walkthrough for your IT team — we cover privacy, data, AI, compliance',     rec_signals:['security','mtss','district'],           owner:'AM + CS'},
-  {id:'title1',         icon:'🏷️',  label:'Title I / Grant Funding Conversation', sub:'We help you map funding sources — Title I, ESSER, instructional grants',           rec_signals:['grant','budget','title1'],              owner:'AM'},
-  {id:'pilot_mt',       icon:'🔬', label:'MirrorTalk 3-Week Pilot',             sub:'Small group of teachers test MirrorTalk — data-driven buy-in for the broader team',   rec_signals:['assess','student','reflect'],           owner:'AM'},
-  {id:'cx_consult',     icon:'🤖', label:'Robot (CX) Consultation',             sub:'Walk through CX1/CX3/CX5 options, pricing, and whether M2 is a better fit',          rec_signals:['coaching','cx_track','walkthru'],       owner:'AM'},
-  {id:'tradein',        icon:'🔄', label:'Robot Trade-In Program',              sub:'If you have existing Swivl robots, explore trade-in credit toward M2',                 rec_signals:['cx_existing','cx_track'],              owner:'AM'},
-  {id:'new_contact',    icon:'👥', label:'Identify a New Champion / Contact',   sub:'Map the right decision-maker or implementer to keep momentum going',                  rec_signals:['buyin','district'],                    owner:'SDR'},
-  {id:'nurture',        icon:'📬', label:'Stay Connected — Follow-Up in 30 Days', sub:'Not the right time now — we send relevant updates and check back in',              rec_signals:['not_ready'],                           owner:'AM (Salesloft)'}
+var ELL=[
+  {id:'significant', label:'Yes — significant ELL/ML population', sub:'Translation is a must-have'},
+  {id:'some',        label:'Yes — some ELL students',             sub:'Translation could differentiate'},
+  {id:'no',          label:'No / very few',                       sub:'Language features not a priority'},
+  {id:'unknown',     label:'Unknown',                             sub:''}
 ];
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   2. STATE
-═══════════════════════════════════════════════════════════════════════════ */
+var TIMELINES=[
+  {id:'0-30',   label:'Within 30 days'},
+  {id:'30-90',  label:'1–3 months'},
+  {id:'90-180', label:'3–6 months'},
+  {id:'thisyr', label:'This school year'},
+  {id:'nextyr', label:'Next school year'},
+  {id:'unknown',label:'Still exploring / not sure'}
+];
 
-let D = freshData(); // meeting data
-let VIEW = 'home';   // home | meeting | records | summary
-let STEP = 1;
-let RECORDS = loadRecords();
-let COPY_MSG = '';
-let SAVED = false;
-let ACTIVE_REC_ID = null;
+var BUDGET=[
+  {id:'now',    label:'Budget available now'},
+  {id:'nextq',  label:'Next quarter'},
+  {id:'nextfy', label:'Next fiscal year'},
+  {id:'grant',  label:'Grant pending'},
+  {id:'unknown',label:'Unknown'}
+];
 
-function freshData() {
-  return {
-    // step 1
-    name:'', org:'', role:'', grade:'', sdrName:'', date:todayStr(),
-    // step 2
-    expectations:[], source:'', notes_opening:'',
-    // step 3 — live during brian's deck
-    priorities:[], pain:'', budget_signal:'', scale:'',
-    // step 4 — feature reactions
-    m2_reactions:[], cx_reactions:[], reaction_notes:'', product_lean:'',
-    // step 5 — context
-    existing_tech:'', decision_timeline:'', security_concern:false, title1_interest:false, hands_on_interest:false,
-    // step 6 — next steps
-    chosen_steps:[],
-    ns_notes:'', meeting_time:'', am_name:'',
-    // computed
-    deployment_model:null
+var STAKEHOLDER_ROLES=[
+  'IT / Security','Procurement','Finance',
+  'Curriculum & Instruction','Instructional coaches',
+  'Principal(s)','Superintendent','Board','Other'
+];
+
+var SECURITY=[
+  {id:'dpa',    label:'Data Privacy Agreement (DPA)'},
+  {id:'ferpa',  label:'FERPA / COPPA review'},
+  {id:'vendor', label:'Vendor approval forms'},
+  {id:'sso',    label:'SSO / rostering'},
+  {id:'rfp',    label:'RFP / bidding process'},
+  {id:'none',   label:'None identified yet'}
+];
+
+// Routes — only relevant ones for a discovery call
+var ROUTES=[
+  {id:'pilot',       label:'Pilot / trial',                   sub:'Get devices on-site, schedule training. Lock a date.'},
+  {id:'quote',       label:'Pricing / quote meeting',         sub:'They want numbers. Route to AM with a scheduled meeting.'},
+  {id:'stakeholder', label:'Bring in a missing stakeholder',  sub:'The right person wasn\'t here. Next meeting = get them in the room.'},
+  {id:'nurture',     label:'Budget nurture',                  sub:'They\'re interested but timing is off. Set a real re-engage date.'},
+  {id:'unsure',      label:'Need more information',           sub:'Missing a core answer. Schedule a short follow-up to get it.'}
+];
+
+/* ─── STATE ──────────────────────────────────────────────────────── */
+var LS={rec:'swivl_v4_rec',prof:'swivl_v4_prof'};
+function loadProf(){try{return JSON.parse(localStorage.getItem(LS.prof)||'{}')||{};}catch(e){return{};}}
+function saveProf(){try{localStorage.setItem(LS.prof,JSON.stringify(S.profile));}catch(e){}}
+function loadRecs(){try{return JSON.parse(localStorage.getItem(LS.rec)||'[]')||[];}catch(e){return[];}}
+function saveRecs(){try{localStorage.setItem(LS.rec,JSON.stringify(S.records));}catch(e){}}
+
+function fresh(){
+  var t=new Date(),cl=new Date();cl.setDate(cl.getDate()+90);
+  function iso(d){function p(n){return(n<10?'0':'')+n;}return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
+  return{
+    meetingDate:t.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    closeDate:iso(cl),
+    sdrName:'',sdrEmail:'',leadSource:'',
+    name:'',role:'',email:'',org:'',attendees:'',meetingType:'brian',
+    missions:[],missionOther:'',pain:'',success:'',
+    currentSwivl:'',swivlCount:'',swivlUse:'',
+    coachingPractice:'',ellPop:'',
+    products:[],productOther:'',contextNotes:'',
+    features:[],reaction:'',
+    timeline:'',timelineNotes:'',
+    budget:'',budgetNotes:'',budgetDate:'',
+    dmName:'',dmRole:'',dmPresent:'',
+    stakeholderRoles:[],stakeholderNames:'',
+    securityNeeds:[],securityNotes:'',privacyDocsNeeded:'',
+    route:'',
+    nextType:'',nextDate:'',nextNotes:'',
+    amName:'',
+    pilotType:'',pilotStart:'',pilotSchools:'',
+    nurtureDate:'',nurtureCategory:'',
+    unsureMissing:'',
+    emailSubject:'',emailBody:''
   };
 }
 
-function loadRecords() {
-  try { return JSON.parse(localStorage.getItem('swivl_v5') || '[]'); }
-  catch(e) { return []; }
+var S={view:'home',step:1,data:fresh(),profile:loadProf(),records:loadRecs(),id:null,saved:false};
+(function(){var p=S.profile;if(p.sdrName)S.data.sdrName=p.sdrName;if(p.sdrEmail)S.data.sdrEmail=p.sdrEmail;if(p.leadSource)S.data.leadSource=p.leadSource;})();
+
+/* ─── UTILS ──────────────────────────────────────────────────────── */
+function byId(arr,id){for(var i=0;i<arr.length;i++)if(arr[i].id===id)return arr[i];return null;}
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function trim(s){return(s||'').toString().trim();}
+function arr(a){return Array.isArray(a)?a:[];}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function lbl(list,id){if(!id)return'';var o=byId(list,id);return o?o.label:id;}
+
+/* ─── QUALIFICATION ───────────────────────────────────────────────── */
+function qual(d){
+  d=d||S.data;var s=0,m=[];
+  if(trim(d.pain)){s+=2;}else{m.push('Pain point');}
+  if(arr(d.missions).length){s+=1;}else{m.push('Mission priority');}
+  if(arr(d.products).length){s+=1;}else{m.push('Solutions discussed');}
+  if(trim(d.dmName)){s+=2;}else{m.push('Decision maker name');}
+  if(trim(d.timeline)){s+=2;}else{m.push('Timeline');}
+  if(trim(d.budget)||trim(d.budgetNotes)){s+=2;}else{m.push('Budget timing');}
+  if(arr(d.stakeholderRoles).length||trim(d.stakeholderNames)){s+=1;}else{m.push('Stakeholders');}
+  if(arr(d.securityNeeds).length||trim(d.securityNotes)){s+=1;}else{m.push('Security/DPA');}
+  if(trim(d.route)){s+=1;}else{m.push('Route');}
+  if(trim(d.nextDate)){s+=2;}else{m.push('Next meeting date');}
+  var t='D';if(s>=12)t='A';else if(s>=9)t='B';else if(s>=6)t='C';
+  return{score:s,tier:t,missing:m};
 }
 
-function saveRecords() {
-  try { localStorage.setItem('swivl_v5', JSON.stringify(RECORDS)); }
-  catch(e) {}
+function recNext(){
+  var d=S.data,r=d.route;
+  var rec={head:'Lock in a clear next meeting.',why:'Speed beats goodwill. Get a date while momentum exists.',ask:'Confirm decision maker, timeline, and budget window.'};
+  if(r==='pilot'){rec.head='Pilot path: lock the date and plan.';rec.why='Pilots die without dates. Put training and device delivery on the calendar now.';rec.ask='Confirm who participates, which grade levels, and what success looks like. Get training scheduled.';}
+  if(r==='quote'){rec.head='Quote path: schedule pricing meeting.';rec.why='They asked for pricing. Move fast before energy stalls.';rec.ask='Confirm products, rough quantities, and who makes the purchase decision.';}
+  if(r==='stakeholder'){rec.head='Get the right person in the room.';rec.why='Most pipeline stalls happen because the decision maker wasn\'t on the call.';rec.ask='Get a name, a role, and a meeting time with IT/security or the decision maker.';}
+  if(r==='nurture'){rec.head='Turn "later" into a specific date.';rec.why='Nurture without timing is a dead pipeline.';rec.ask='What budget window governs this? Set the exact re-engage date now.';}
+  if(r==='unsure'){rec.head='One more short call to get the core answers.';rec.why='If you can\'t route it, you didn\'t get a core answer.';rec.ask='Ask: who signs off, when do they need it, and what budget cycle governs it.';}
+  return rec;
 }
 
-function todayStr() {
-  return new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+/* ─── TOAST ──────────────────────────────────────────────────────── */
+var _tt=null;
+function toast(msg){
+  var el=document.getElementById('toast');if(!el)return;
+  el.textContent=msg;el.classList.remove('show');if(_tt)clearTimeout(_tt);
+  setTimeout(function(){el.classList.add('show');},10);
+  _tt=setTimeout(function(){el.classList.remove('show');},2600);
 }
 
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+/* ─── MINI CALENDAR ──────────────────────────────────────────────── */
+var CAL={year:0,month:0};
+(function(){var n=new Date();CAL.year=n.getFullYear();CAL.month=n.getMonth();})();
+var DAYS=['Su','Mo','Tu','We','Th','Fr','Sa'];
+var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   3. INPUT HANDLING — cursor-safe, no rerender on text input
-═══════════════════════════════════════════════════════════════════════════ */
+function buildCal(selectedISO,fieldKey){
+  var today=new Date();today.setHours(0,0,0,0);
+  var maxDate=new Date();maxDate.setMonth(maxDate.getMonth()+3);
+  var y=CAL.year,m=CAL.month;
+  var first=new Date(y,m,1);
+  var daysInMonth=new Date(y,m+1,0).getDate();
+  var startDow=first.getDay();
+  var todayISO=isoDate(today);
+  var maxISO=isoDate(maxDate);
 
-function hi(field, value) {
-  D[field] = value;
-  validateButtons();
+  var canPrev=!(y===today.getFullYear()&&m===today.getMonth());
+  var canNext=!(y===maxDate.getFullYear()&&m===maxDate.getMonth());
+
+  var html='<div class="cal-wrap">'+
+    '<div class="cal-nav">'+
+      '<button'+(canPrev?'':' disabled')+' data-action="calPrev">‹</button>'+
+      '<div class="cal-month">'+MONTHS[m]+' '+y+'</div>'+
+      '<button'+(canNext?'':' disabled')+' data-action="calNext">›</button>'+
+    '</div>'+
+    '<div class="cal-grid">';
+  for(var i=0;i<7;i++)html+='<div class="cal-day-hdr">'+DAYS[i]+'</div>';
+  for(var e=0;e<startDow;e++)html+='<div class="cal-day cal-empty"></div>';
+  for(var d=1;d<=daysInMonth;d++){
+    var dt=new Date(y,m,d);var dISO=isoDate(dt);
+    var cls='cal-day';
+    if(dISO<todayISO)cls+=' cal-past';
+    else if(dISO>maxISO)cls+=' cal-past';
+    else if(dISO===selectedISO)cls+=' cal-sel';
+    else if(dISO===todayISO)cls+=' cal-today';
+    var click=(dISO<todayISO||dISO>maxISO)?'':" data-action=\"calPick\" data-value=\""+dISO+"\" data-field=\""+esc(fieldKey)+"\"";
+    html+='<div class="'+cls+'"'+click+'>'+d+'</div>';
+  }
+  return html+'</div></div>';
 }
 
-function hiCheck(field, value) {
-  D[field] = value === 'true';
-  validateButtons();
+function isoDate(d){function p(n){return(n<10?'0':'')+n;}return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
+function prettyDate(iso){if(!iso)return'';var p=iso.split('-');if(p.length!==3)return iso;var d=new Date(Number(p[0]),Number(p[1])-1,Number(p[2]));return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
+
+/* ─── HTML BUILDERS ──────────────────────────────────────────────── */
+function Prog(step,total,label){
+  var pct=Math.round(step/total*100);
+  return'<div class="prog"><div class="prog-row"><div class="prog-label">Step '+step+' of '+total+' · '+esc(label)+'</div><div class="prog-pct">'+pct+'%</div></div><div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%"></div></div></div>';
+}
+function Card(lbl,body,hl){return'<div class="card'+(hl?' hl':'')+'"><div class="lbl">'+esc(lbl)+'</div>'+body+'</div>';}
+function Tile(action,key,val,title,sub,sel){
+  return'<div class="tile'+(sel?' sel':'')+'" data-action="'+esc(action)+'" data-key="'+esc(key)+'" data-value="'+esc(val)+'">'+
+    '<div class="tile-body"><div class="tile-title">'+esc(title)+'</div>'+(sub?'<div class="tile-sub">'+esc(sub)+'</div>':'')+
+    '</div><div class="tile-dot">'+(sel?'<span class="ck">✓</span>':'')+
+    '</div></div>';
+}
+function Chip(action,key,val,label,sel){
+  return'<span class="chip'+(sel?' sel':'')+'" data-action="'+esc(action)+'" data-key="'+esc(key)+'" data-value="'+esc(val)+'">'+esc(label)+'</span>';
+}
+function In(lbl,field,ph,type){
+  return'<div style="margin-bottom:10px"><div class="lbl">'+esc(lbl)+'</div>'+
+    '<input class="in" data-f="'+esc(field)+'" type="'+(type||'text')+'" value="'+esc(S.data[field]||'')+'" placeholder="'+esc(ph||'')+'" /></div>';
+}
+function Tx(lbl,field,ph,rows){
+  return'<div style="margin-bottom:10px"><div class="lbl">'+esc(lbl)+'</div>'+
+    '<textarea class="in" data-f="'+esc(field)+'" rows="'+(rows||3)+'" placeholder="'+esc(ph||'')+'">'+esc(S.data[field]||'')+'</textarea></div>';
+}
+function Nav(backLbl,nextLbl,backDis,nextDis){
+  return'<div class="navrow">'+
+    '<button class="btn o" data-action="prev"'+(backDis?' disabled':'')+'>← '+esc(backLbl||'Back')+'</button>'+
+    '<button class="btn p" data-action="next"'+(nextDis?' disabled':'')+'>'+esc(nextLbl||'Next')+' →</button>'+
+  '</div>';
+}
+function SR(lbl,val){
+  if(!trim(String(val||'')))return'';
+  return'<div class="sr"><div class="sr-l">'+esc(lbl)+'</div><div class="sr-v">'+esc(String(val))+'</div></div>';
+}
+function Gate(lbl,ok,id){
+  return'<div class="gate"><b>'+esc(lbl)+'</b><span id="'+(id||'')+'" class="'+(ok?'ok':'miss')+'">'+(ok?'OK':'Missing')+'</span></div>';
 }
 
-function validateButtons() {
-  const nextBtn = document.getElementById('next-btn');
-  if (!nextBtn) return;
-  if (STEP === 1) nextBtn.disabled = !(D.name.trim() && D.org.trim());
-  else nextBtn.disabled = false;
+/* ─── VIEWS ──────────────────────────────────────────────────────── */
+function Topbar(title){
+  return'<div class="topbar">'+
+    '<div style="display:flex;align-items:center">'+wm(22)+
+    (title?'<div class="brand-ctx">'+esc(title)+'</div>':'')+
+    '</div>'+
+    '<div style="display:flex;gap:8px">'+
+      (S.view==='meeting'?'<button class="btn sm o" data-action="goHome">Exit</button>':'')+
+      (S.view==='home'?'<button class="btn sm o" data-action="goRecords">Records ('+S.records.length+')</button>':'')+
+      (S.view==='records'?'<button class="btn sm o" data-action="goHome">← Home</button>':'')+
+    '</div>'+
+  '</div>';
 }
 
-function toggleArr(field, val) {
-  const arr = D[field];
-  const idx = arr.indexOf(val);
-  if (idx >= 0) arr.splice(idx, 1);
-  else arr.push(val);
-  render();
+function HomeView(){
+  return Topbar()+
+  '<div class="wrap">'+
+    '<div style="text-align:center;margin:36px 0 28px">'+
+      '<div style="display:flex;justify-content:center;margin-bottom:16px">'+wm(38)+'</div>'+
+      '<div class="h2">SDR Meeting Companion</div>'+
+      '<div class="sub" style="max-width:460px;margin:8px auto 0">Capture discovery, qualify the opportunity, and walk out of every call with a follow-up email ready to send.</div>'+
+    '</div>'+
+    '<div class="card" style="margin-bottom:18px">'+
+      '<div class="lbl" style="margin-bottom:14px">How it works</div>'+
+      howRow(1,'Capture the real pain','Missions, pain point, and what success looks like for this district.')+
+      howRow(2,'Understand their starting point','Current Swivl setup, ELL population, coaching practice — so you tell the right M2 story.')+
+      howRow(3,'Get the MEDDPICC answers','Decision maker, timeline, budget window, stakeholders, DPA needs.')+
+      howRow(4,'Route and write the follow-up','Tier A–D score, recommended next step, and a follow-up email ready to edit and send.')+
+    '</div>'+
+    '<div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">'+
+      '<button class="btn p" data-action="start">Start new meeting</button>'+
+      '<button class="btn o" data-action="goRecords">Saved records</button>'+
+    '</div>'+
+  '</div>';
 }
 
-function setSingle(field, val) {
-  D[field] = D[field] === val ? '' : val;
-  render();
+function howRow(n,title,desc){
+  return'<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px">'+
+    '<div style="width:28px;height:28px;border-radius:9px;background:rgba(142,71,255,.12);color:#8E47FF;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+n+'</div>'+
+    '<div><div style="font-weight:800;margin-bottom:2px">'+esc(title)+'</div><div class="sub">'+esc(desc)+'</div></div>'+
+  '</div>';
 }
 
-function toggleStep(id) {
-  const arr = D.chosen_steps;
-  const idx = arr.indexOf(id);
-  if (idx >= 0) arr.splice(idx, 1);
-  else arr.push(id);
-  render();
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   4. SMART LOGIC ENGINE
-═══════════════════════════════════════════════════════════════════════════ */
-
-function computeProductLean() {
-  // Signals strongly pointing to M2
-  const m2Signals = [
-    ...D.m2_reactions,
-    ...D.priorities.filter(p => {
-      const pr = PRIORITIES.find(x => x.id === p);
-      return pr && pr.signal === 'm2';
-    })
-  ];
-  // Signals pointing to CX
-  const cxSignals = [
-    ...D.cx_reactions,
-    ...D.priorities.filter(p => ['coaching','walkthru'].includes(p))
-  ];
-  if (D.cx_reactions.includes('cx_existing')) return 'both';
-  if (cxSignals.length > m2Signals.length) return 'cx';
-  if (m2Signals.length >= 2) return 'm2';
-  return 'unclear';
-}
-
-function computeRecommendedSteps() {
-  const recommended = new Set();
-  const lean = D.product_lean || computeProductLean();
-
-  // Always surface a meeting or demo path
-  if (D.expectations.includes('demo') || D.m2_reactions.length > 0)
-    recommended.add('virtual_demo');
-
-  if (D.expectations.includes('pricing') || D.budget_signal === 'ready')
-    recommended.add('am_quote');
-  else if (D.expectations.includes('fit') || D.priorities.length > 0)
-    recommended.add('am_meeting');
-
-  if (D.hands_on_interest || D.cx_reactions.includes('cx_existing'))
-    recommended.add('onsite_trial');
-
-  if (D.security_concern || D.priorities.includes('mtss') || D.scale === 'district')
-    recommended.add('security');
-
-  if (D.title1_interest || D.expectations.includes('grant'))
-    recommended.add('title1');
-
-  if (D.priorities.includes('assess') || D.priorities.includes('reflect') || D.m2_reactions.includes('mirrortalk'))
-    recommended.add('pilot_mt');
-
-  if (lean === 'cx' || D.cx_reactions.includes('cx_track') || D.priorities.includes('coaching'))
-    recommended.add('cx_consult');
-
-  if (D.cx_reactions.includes('cx_existing'))
-    recommended.add('tradein');
-
-  if (D.budget_signal === 'tight' || D.scale === 'small')
-    recommended.add('title1');
-
-  if (D.expectations.includes('buyin') || D.scale === 'district')
-    recommended.add('new_contact');
-
-  // Trim to top 3-4
-  return [...recommended].slice(0,4);
-}
-
-function computeDeploymentModel() {
-  const lean = D.product_lean || computeProductLean();
-  const scale = D.scale || 'small';
-  const name = D.org || 'your school';
-
-  let model = { lean, items:[], note:'', disclaimer:'AM will build the formal quote based on your goals and priorities.' };
-
-  if (lean === 'cx') {
-    model.title = 'Swivl Robot (CX) Deployment';
-    model.tagline = 'Video coaching & teacher reflection';
-    model.items = [
-      {label:'CX3 Robot (teacher + 2 student mics)', price:'$1,100', note:'per unit'},
-      {label:'Tripod', price:'~$99', note:'per unit'},
-      {label:'iPad (if needed)', price:'$300–$500', note:'per unit'},
-      {label:'Reflectivity software', price:'$95/user/yr', note:'individual · program pricing available'},
-    ];
-    model.range = scale === 'district' ? '$15,000–$50,000+' : '$1,500–$4,000';
-    model.starter = 'Fully configured CX3 unit ≈ $1,700–$1,900';
-  } else if (lean === 'both') {
-    model.title = 'M2 + CX Hybrid Path';
-    model.tagline = 'Upgrade existing robots, expand with M2';
-    model.items = [
-      {label:'M2 hardware', price:'$2,250', note:'10% off MSRP'},
-      {label:'MirrorTalk software (min. 3 licences)', price:'$250/teacher/yr', note:'+ free 60-day full-site trial'},
-      {label:'CX Robot trade-in credit', price:'TBD', note:'AM to assess existing fleet'},
-    ];
-    model.range = scale === 'district' ? '$20,000–$75,000+' : '$3,000–$8,000';
-    model.starter = '1 M2 + 3 MirrorTalk licences = $3,000 · free 60-day full-site licence included';
-  } else {
-    // m2 or unclear — default to M2
-    model.title = 'M2 + MirrorTalk Deployment';
-    model.tagline = 'AI-powered classroom co-teacher';
-    model.items = [
-      {label:'M2 hardware', price:'$2,250', note:'10% off $2,500 MSRP'},
-      {label:'MirrorTalk software (min. 3 licences)', price:'$750/yr', note:'3 × $250 · free 60-day full-site trial included'},
-      {label:'Starter Pack total', price:'$3,000', note:'hardware + software + free trial'},
-    ];
-    if (scale === 'pilot') {
-      model.items.push({label:'Pilot (4–10 units)', price:'$12,000–$30,000', note:'program pricing applies'});
-    } else if (scale === 'district') {
-      model.items.push({label:'District-wide deployment', price:'Custom', note:'site licence significantly reduces per-user cost'});
+function RecordsView(){
+  var rows='';
+  if(!S.records.length){rows='<div class="card"><div class="sub" style="text-align:center">No records yet.</div></div>';}
+  else{
+    for(var i=0;i<S.records.length;i++){
+      var r=S.records[i],d=r.data||{};var q=qual(d);
+      rows+='<div class="rec"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">'+
+        '<div><div style="font-weight:900;font-size:15px">'+esc(d.name||'Unknown')+'</div>'+
+        '<div class="sub" style="margin-top:2px">'+esc(d.org||'—')+(d.role?' · '+esc(d.role):'')+'</div>'+
+        '<div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+
+          '<span class="tag '+q.tier+'">Tier '+q.tier+'</span>'+
+          '<span class="sub" style="font-size:12px">'+esc(d.meetingDate||'')+'</span>'+
+          (d.route?'<span class="sub" style="font-size:12px">'+esc(lbl(ROUTES,d.route))+'</span>':'')+'</div></div>'+
+        '<div style="display:flex;gap:8px">'+
+          '<button class="btn sm p" data-action="viewRec" data-id="'+esc(r.id)+'">View</button>'+
+          '<button class="btn sm danger" data-action="delRec" data-id="'+esc(r.id)+'">Delete</button>'+
+        '</div></div></div>';
     }
-    model.range = scale === 'district' ? '$30,000–$100,000+' : '$3,000–$15,000';
-    model.starter = 'Starter Pack: 1 M2 + 3 licences = $3,000 · 60-day free full-site licence for everyone in the building';
   }
-  return model;
+  return Topbar()+
+  '<div class="wrap">'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:16px">'+
+      '<div><div class="h2" style="margin-bottom:0">Saved records</div><div class="sub">Stored locally in this browser.</div></div>'+
+      '<button class="btn p sm" data-action="start">New meeting</button>'+
+    '</div>'+rows+'</div>';
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   5. HTML HELPERS
-═══════════════════════════════════════════════════════════════════════════ */
-
-function esc(s) {
-  return (s||'').toString()
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function MeetingView(){
+  var d=S.data;
+  var title=trim(d.name)?(d.name+(trim(d.org)?' · '+d.org:'')):'New meeting';
+  var fns=[null,S1,S2,S3,S4,S5,S6,S7];
+  return Topbar(title)+'<div class="wrap step-in">'+(fns[S.step]||S1)()+'</div>';
 }
 
-function logo(size) {
-  return `<span class="swivl-logo" style="font-size:${size||24}px;">Swivl</span>`;
+/* ─── STEP 1 — Basics ─────────────────────────────────────────────── */
+function S1(){
+  var d=S.data,ok=!!(trim(d.name)&&trim(d.org));
+  var mtTiles=
+    Tile('setC','meetingType','brian','Brian-led discovery','Founder-led deck + discovery',d.meetingType==='brian')+
+    Tile('setC','meetingType','am','AM-led discovery','SDR scheduled, handing to AM',d.meetingType==='am')+
+    Tile('setC','meetingType','inbound','Inbound / quote request','Prospect came to us',d.meetingType==='inbound');
+
+  return Prog(1,6,'Who are we talking to?')+
+  '<div style="margin-bottom:18px"><div class="h2">Who are we meeting with?</div>'+
+  '<div class="sub">Your name and email save automatically so they carry over to every new meeting.</div></div>'+
+
+  '<div class="grid2">'+
+    Card('Primary contact *','<input class="in" data-f="name" type="text" value="'+esc(d.name)+'" placeholder="e.g. Sarah Johnson" />')+
+    Card('School / district *','<input class="in" data-f="org" type="text" value="'+esc(d.org)+'" placeholder="e.g. Austin ISD" />')+
+  '</div>'+
+  '<div class="grid2">'+
+    Card('Title / role','<input class="in" data-f="role" type="text" value="'+esc(d.role)+'" placeholder="e.g. Director of Instructional Technology" />')+
+    Card('Email','<input class="in" data-f="email" type="text" value="'+esc(d.email)+'" placeholder="name@district.org" />')+
+  '</div>'+
+  Card('Additional attendees','<textarea class="in" data-f="attendees" rows="2" placeholder="Other names and roles on this call">'+esc(d.attendees)+'</textarea>')+
+  '<div class="grid2">'+
+    Card('Meeting date','<input class="in" data-f="meetingDate" type="text" value="'+esc(d.meetingDate)+'" />')+
+    Card('CRM close date','<input class="in" data-f="closeDate" type="date" value="'+esc(d.closeDate)+'" />')+
+  '</div>'+
+  '<div class="grid2">'+
+    Card('Your name (SDR)','<input class="in" data-f="sdrName" type="text" value="'+esc(d.sdrName)+'" placeholder="Your name" />')+
+    Card('Your email','<input class="in" data-f="sdrEmail" type="text" value="'+esc(d.sdrEmail)+'" placeholder="you@swivl.com" />')+
+  '</div>'+
+  '<div class="grid2">'+
+    Card('Lead source','<input class="in" data-f="leadSource" type="text" value="'+esc(d.leadSource)+'" placeholder="Outbound, inbound, event, referral..." />')+
+    Card('Meeting type','<div class="tiles" style="margin-bottom:0">'+mtTiles+'</div>')+
+  '</div>'+
+  '<div class="navrow" style="justify-content:flex-end">'+
+    '<button class="btn p" data-action="next"'+(ok?'':' disabled')+'>Continue →</button>'+
+  '</div>';
 }
 
-function tag(text, color) {
-  return `<span class="tag" style="background:${color}18;color:${color};">${esc(text)}</span>`;
+/* ─── STEP 2 — Mission & pain ──────────────────────────────────────── */
+function S2(){
+  var d=S.data;
+  var tiles='';for(var i=0;i<MISSIONS.length;i++){var m=MISSIONS[i];tiles+=Tile('toggleArr','missions',m.id,m.label,'',arr(d.missions).indexOf(m.id)>=0);}
+  var showOther=arr(d.missions).indexOf('other')>=0;
+  return Prog(2,6,'Mission & pain')+
+  '<div style="margin-bottom:18px"><div class="h2">What is mission-critical for them?</div>'+
+  '<div class="sub">Select everything that came up. This shapes which M2 story to tell and goes into the follow-up email.</div></div>'+
+  '<div class="tiles two">'+tiles+'</div>'+
+  (showOther?'<div style="margin-bottom:12px"><input class="in" data-f="missionOther" type="text" value="'+esc(d.missionOther)+'" placeholder="Describe the other priority" /></div>':'<div id="mOth" style="display:none;margin-bottom:12px"><input class="in" data-f="missionOther" type="text" value="'+esc(d.missionOther)+'" placeholder="Describe the other priority" /></div>')+
+  Card('Biggest pain point — in their exact words',
+    '<textarea class="in" data-f="pain" rows="3" placeholder="Use their phrasing, not ours. This becomes the opening line of the follow-up email.">'+esc(d.pain)+'</textarea>','hl')+
+  Card('What success looks like to them',
+    '<textarea class="in" data-f="success" rows="2" placeholder="What outcome are they trying to achieve?">'+esc(d.success)+'</textarea>')+
+  Nav('Back','Next');
 }
 
-function renderTile(icon, label, sub, sel, onclick, colorClass, compact) {
-  colorClass = colorClass || '';
-  const subHtml = (sub && !compact) ? `<div class="tile-sub">${esc(sub)}</div>` : '';
-  return `<div class="tile ${colorClass} ${sel?'sel':''}" onclick="${onclick}">
-    ${icon ? `<span style="font-size:${compact?18:22}px;flex-shrink:0;">${icon}</span>` : ''}
-    <div style="flex:1;"><div class="tile-label">${esc(label)}</div>${subHtml}</div>
-    <div class="chk">${sel?'✓':''}</div>
-  </div>`;
+/* ─── STEP 3 — Starting point & signals ──────────────────────────── */
+function S3(){
+  var d=S.data;
+  var csT='';for(var i=0;i<CURR_SWIVL.length;i++){var c=CURR_SWIVL[i];csT+=Tile('setC','currentSwivl',c.id,c.label,c.sub,d.currentSwivl===c.id);}
+  var cpT='';for(var j=0;j<COACHING.length;j++){var cp=COACHING[j];cpT+=Tile('setC','coachingPractice',cp.id,cp.label,cp.sub,d.coachingPractice===cp.id);}
+  var epT='';for(var k=0;k<ELL.length;k++){var ep=ELL[k];epT+=Tile('setC','ellPop',ep.id,ep.label,ep.sub,d.ellPop===ep.id);}
+
+  var showSwivlDetail=d.currentSwivl==='active'||d.currentSwivl==='underused';
+  var showTradeIn=showSwivlDetail;
+  var showCoachingHint=d.coachingPractice==='no'||d.coachingPractice==='open';
+  var showEllHint=d.ellPop==='significant'||d.ellPop==='some';
+
+  var prodChips='';for(var n=0;n<PRODUCTS.length;n++){var p=PRODUCTS[n];prodChips+=Chip('toggleArr','products',p.id,p.label,arr(d.products).indexOf(p.id)>=0);}
+
+  return Prog(3,6,'Starting point & M2 fit')+
+  '<div style="margin-bottom:18px"><div class="h2">Understand their starting point</div>'+
+  '<div class="sub">Three questions that shape which M2 features to lead with.</div></div>'+
+
+  '<div class="card">'+
+    '<div class="lbl">Do they currently own Swivl robots?</div>'+
+    '<div class="tiles two">'+csT+'</div>'+
+    '<div id="swD" style="display:'+(showSwivlDetail?'block':'none')+'">'+
+      '<input class="in" data-f="swivlCount" type="text" value="'+esc(d.swivlCount)+'" placeholder="How many? (e.g. 8 units)" style="margin-bottom:8px"/>'+
+      '<textarea class="in" data-f="swivlUse" rows="2" placeholder="How are they being used? (e.g. national board recording, teacher checkout, spelling bee)">'+esc(d.swivlUse)+'</textarea>'+
+    '</div>'+
+    '<div id="tIn" style="display:'+(showTradeIn?'block':'none')+'">'+
+      '<div class="callout" style="margin-top:10px;margin-bottom:0"><h4>💱 Trade-in program</h4><p>Each returned Swivl = $250 credit toward an M2. Mention this now — it reframes the budget conversation.</p></div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="card">'+
+    '<div class="lbl">Is video coaching or reflection part of their practice?</div>'+
+    '<div class="tiles two">'+cpT+'</div>'+
+    '<div id="coHint" style="display:'+(showCoachingHint?'block':'none')+'">'+
+      '<div class="callout" style="margin-bottom:0"><h4>Reframe: teacher\'s aide, not an observation tool</h4><p>Lead with private, judgment-free feedback first. The teacher controls sharing. No camera anxiety.</p></div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="card">'+
+    '<div class="lbl">Do they have ELL or multilingual learner (ML) students?</div>'+
+    '<div class="tiles two">'+epT+'</div>'+
+    '<div id="ellHint" style="display:'+(showEllHint?'block':'none')+'">'+
+      '<div class="callout" style="margin-bottom:0"><h4>🌐 Language features are a strong differentiator here</h4><p>M2 supports in-ear translation for up to 9 students simultaneously in 140+ languages — and can translate for the whole class on demand.</p></div>'+
+    '</div>'+
+  '</div>'+
+
+  Card('What are we looking at today?',
+    '<div class="sub" style="margin-bottom:10px">Select what came up in the conversation.</div>'+
+    '<div class="chips" style="margin-bottom:10px">'+prodChips+'</div>'+
+    '<div id="pOth" style="display:'+(arr(d.products).indexOf('other')>=0?'block':'none')+'">'+
+      '<input class="in" data-f="productOther" type="text" value="'+esc(d.productOther)+'" placeholder="Describe it" />'+
+    '</div>'
+  )+
+  Tx('Additional context (optional)','contextNotes','Existing tools, constraints, org structure, objections heard so far',2)+
+
+  Nav('Back','Next');
 }
 
-function renderChip(label, sel, onclick) {
-  return `<span class="chip ${sel?'sel':''}" onclick="${onclick}">${sel?'✓ ':''}${esc(label)}</span>`;
+/* ─── STEP 4 — M2 signals ──────────────────────────────────────────── */
+function S4(){
+  var d=S.data;
+  var chips='';
+  for(var i=0;i<M2_FEATS.length;i++){
+    var f=M2_FEATS[i];var sel=arr(d.features).indexOf(f.id)>=0;
+    chips+='<div class="chip'+(sel?' sel':'')+' tile" data-action="toggleFeat" data-value="'+f.id+'" style="border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;align-items:flex-start;cursor:pointer;width:100%;margin-bottom:8px">'+
+      '<div style="display:flex;justify-content:space-between;width:100%;align-items:center">'+
+        '<div style="font-weight:700;font-size:14px;color:'+(sel?'#8E47FF':'#000')+'">'+esc(f.label)+'</div>'+
+        '<div class="tile-dot">'+(sel?'<span class="ck">✓</span>':'')+
+        '</div></div>'+
+      '<div style="font-size:12px;color:#7A7A7A;margin-top:4px;line-height:1.4">'+esc(f.desc)+'</div>'+
+    '</div>';
+  }
+  var cnt=arr(d.features).length;
+
+  return Prog(4,6,'M2 signals')+
+  '<div style="margin-bottom:18px"><div class="h2">What lit them up?</div>'+
+  '<div class="sub">Pick up to '+FEAT_LIMIT+' features they responded to. These anchor the follow-up email and the next meeting.</div></div>'+
+
+  '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+    '<div class="lbl" style="margin:0">Select up to '+FEAT_LIMIT+'</div>'+
+    '<div style="font-size:12px;font-weight:900;color:'+(cnt>=FEAT_LIMIT?'#CC7200':'#8E47FF')+'"><span id="featCnt">'+cnt+'</span> / '+FEAT_LIMIT+'</div>'+
+  '</div>'+
+  chips+
+  Card('Their reaction (optional)',
+    '<textarea class="in" data-f="reaction" rows="3" placeholder="What excited them? Any objections? Exact quotes are gold.">'+esc(d.reaction)+'</textarea>')+
+
+  Nav('Back','Next');
 }
 
-function renderField(labelTxt, field, ph, multi) {
-  const v = esc(D[field] || '');
-  const st = 'margin-top:0;';
-  if (multi) return `<div><span class="lbl">${labelTxt}</span><textarea rows="3" oninput="hi('${field}',this.value)" placeholder="${esc(ph)}" style="${st}">${v}</textarea></div>`;
-  return `<div><span class="lbl">${labelTxt}</span><input type="text" value="${v}" oninput="hi('${field}',this.value)" placeholder="${esc(ph)}" style="${st}"></div>`;
-}
+/* ─── STEP 5 — Qualification ──────────────────────────────────────── */
+function S5(){
+  var d=S.data;
+  var tlT='';for(var i=0;i<TIMELINES.length;i++){var t=TIMELINES[i];tlT+=Tile('setC','timeline',t.id,t.label,'',d.timeline===t.id);}
+  var bdT='';for(var j=0;j<BUDGET.length;j++){var b=BUDGET[j];bdT+=Tile('setC','budget',b.id,b.label,'',d.budget===b.id);}
 
-function renderProgress(step, label) {
-  const pct = Math.round(step / 7 * 100);
-  const phases = ['Prospect','Context','Priorities','Reactions','Discovery','Next Steps','Summary'];
-  return `<div class="progress-wrap">
-    <div class="progress-meta">
-      <span>Step ${step} of 7 — ${label}</span>
-      <span>${pct}%</span>
-    </div>
-    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-    <div style="display:flex;gap:4px;margin-top:8px;">
-      ${phases.map((p,i) => `<div style="flex:1;height:3px;border-radius:2px;background:${i<step?'#8E47FF':'#E2E2E5'};transition:background .3s;"></div>`).join('')}
-    </div>
-  </div>`;
-}
+  var dmT=
+    Tile('setC','dmPresent','yes','Yes — in this meeting','',d.dmPresent==='yes')+
+    Tile('setC','dmPresent','no','No — not on this call','',d.dmPresent==='no')+
+    Tile('setC','dmPresent','unknown','Not sure','',d.dmPresent==='unknown');
 
-function navRow(backFn, nextFn, nextLabel, disableNext, hideBack) {
-  const back = hideBack ? '<div></div>' : `<button class="btn btn-ghost btn-sm" onclick="${backFn}">← Back</button>`;
-  const next = `<button id="next-btn" class="btn btn-primary" onclick="${nextFn}" ${disableNext?'disabled':''}>${nextLabel||'Continue'} →</button>`;
-  return `<div class="nav-row no-print">${back}${next}</div>`;
-}
-
-function stickyHeader() {
-  const prospect = D.name ? `${esc(D.name)}${D.org ? ' · ' + esc(D.org) : ''}` : 'New Meeting';
-  return `<div class="sticky-hdr no-print">
-    <div class="hdr-left">
-      ${logo(22)}
-      <div class="hdr-divider"></div>
-      <span class="hdr-prospect">${prospect}</span>
-    </div>
-    <button class="btn btn-ghost btn-sm" onclick="exitMeeting()">✕ Exit</button>
-  </div>`;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   6. STEPS
-═══════════════════════════════════════════════════════════════════════════ */
-
-function step1() {
-  const ok = D.name.trim() && D.org.trim();
-  return `
-    ${renderProgress(1, 'Prospect Info')}
-    <div class="page-title">Who are we connecting with today?</div>
-    <p class="page-sub">Fill this in before the call or during introductions. Your prospect may see this — keep it welcoming.</p>
-
-    <div class="card">
-      <div class="grid2">
-        ${renderField('Contact Name *', 'name', 'e.g. Sarah Johnson')}
-        ${renderField('School / District *', 'org', 'e.g. Austin ISD')}
-      </div>
-    </div>
-    <div class="card">
-      <div class="grid2">
-        ${renderField('Their Role / Title', 'role', 'e.g. Curriculum Director, Principal')}
-        ${renderField('Grades / Students Served', 'grade', 'e.g. K–8, High School, Higher Ed')}
-      </div>
-    </div>
-    <div class="card">
-      <div class="grid2">
-        ${renderField('Your Name', 'sdrName', 'Your name')}
-        ${renderField('Meeting Date', 'date', todayStr())}
-      </div>
-    </div>
-    ${navRow('','nextStep()','Begin Meeting', !ok, true)}`;
-}
-
-function step2() {
-  const exTiles = EXPECTATIONS.map(e =>
-    renderTile(e.icon, e.label, null, D.expectations.includes(e.id), `toggleArr('expectations','${e.id}')`, 'c-purple', true)
-  ).join('');
-
-  return `
-    ${renderProgress(2, 'Opening')}
-    <div class="page-title">What brings you to this conversation?</div>
-    <p class="page-sub">Great to open with — what's on their radar? Select everything that seems to apply.</p>
-    <div class="card"><div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">${exTiles}</div></div>
-
-    <div class="card">
-      ${renderField('How did you hear about Swivl?', 'source', 'e.g. conference, colleague, online search, outreach...')}
-    </div>
-    <div class="card accent-purple">
-      ${renderField('Anything happening right now in your district that\'s top of mind?', 'notes_opening', 'Budget cycles, new initiatives, grants, leadership changes, upcoming board meetings...', true)}
-    </div>
-    ${navRow('prevStep()','nextStep()','Next')}`;
-}
-
-function step3() {
-  const prioTiles = PRIORITIES.map(p =>
-    renderTile(p.icon, p.label, null, D.priorities.includes(p.id), `toggleArr('priorities','${p.id}')`, `c-${p.color}`, true)
-  ).join('');
-
-  const scaleOptions = [
-    {id:'small', label:'1–3 classrooms', icon:'🏠'},
-    {id:'pilot', label:'Pilot — small group', icon:'🔬'},
-    {id:'school', label:'Whole school', icon:'🏫'},
-    {id:'district', label:'District-wide', icon:'🌐'},
-  ];
-  const scaleTiles = scaleOptions.map(s =>
-    renderTile(s.icon, s.label, null, D.scale === s.id, `setSingle('scale','${s.id}')`, 'c-blue', true)
-  ).join('');
-
-  const budgetOptions = [
-    {id:'exploring', label:'Exploring options', icon:'🔍'},
-    {id:'budget_cycle', label:'In a budget cycle', icon:'📅'},
-    {id:'grant', label:'Have grant / Title I funds', icon:'🏷️'},
-    {id:'tight', label:'Budget is tight right now', icon:'💸'},
-    {id:'ready', label:'Ready to move forward', icon:'✅'},
-  ];
-  const budgetTiles = budgetOptions.map(b =>
-    renderTile(b.icon, b.label, null, D.budget_signal === b.id, `setSingle('budget_signal','${b.id}')`, 'c-green', true)
-  ).join('');
-
-  return `
-    ${renderProgress(3, 'Priorities')}
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-      <div class="page-title" style="margin-bottom:0;">What's mission-critical for their team?</div>
-      <span class="signal-badge">● Live</span>
-    </div>
-    <p class="page-sub">Capture what's resonating as the conversation unfolds. This shapes everything that follows.</p>
-
-    <div class="card"><div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">${prioTiles}</div></div>
-
-    <div class="card accent-purple">
-      ${renderField('Biggest challenge — in their own words', 'pain', 'The most valuable thing you can capture. Note exactly what they say...', true)}
-    </div>
-
-    <div class="card">
-      <span class="lbl">Scale they\'re thinking about</span>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">${scaleTiles}</div>
-    </div>
-
-    <div class="card">
-      <span class="lbl">Budget signals</span>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">${budgetTiles}</div>
-    </div>
-    ${navRow('prevStep()','nextStep()','Next')}`;
-}
-
-function step4() {
-  const m2Chips = M2_FEATURES.map(f =>
-    renderChip(f.icon + ' ' + f.label, D.m2_reactions.includes(f.id), `toggleArr('m2_reactions','${f.id}')`)
-  ).join('');
-
-  const cxChips = CX_FEATURES.map(f =>
-    renderChip(f.icon + ' ' + f.label, D.cx_reactions.includes(f.id), `toggleArr('cx_reactions','${f.id}')`)
-  ).join('');
-
-  const leanOptions = [
-    {id:'m2',     icon:'🤖', label:'M2 is clearly the right fit',     color:'purple'},
-    {id:'cx',     icon:'📷', label:'They\'re drawn to the robot (CX)', color:'blue'},
-    {id:'both',   icon:'⚡',  label:'Both — M2 upgrade + existing CX',  color:'teal'},
-    {id:'unclear',icon:'🤔', label:'Still exploring — need more info',  color:'grey'},
-  ];
-  const leanTiles = leanOptions.map(l =>
-    renderTile(l.icon, l.label, null, D.product_lean === l.id, `setSingle('product_lean','${l.id}')`, `c-${l.color}`, true)
-  ).join('');
-
-  return `
-    ${renderProgress(4, 'Reactions')}
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-      <div class="page-title" style="margin-bottom:0;">What's lighting them up?</div>
-      <span class="signal-badge">● Live</span>
-    </div>
-    <p class="page-sub">As Brian walks through features, note what gets a reaction — a question, a lean-in, or "we need that."</p>
-
-    <div class="card">
-      <span class="lbl" style="color:#8E47FF;">M2 Features — what resonated?</span>
-      <div style="line-height:2.4;">${m2Chips}</div>
-    </div>
-
-    <div class="card">
-      <span class="lbl" style="color:#5894F7;">Swivl Robot (CX) — any interest?</span>
-      <p style="font-size:13px;color:#7A7A7A;margin-bottom:12px;">CX1 / CX3 / CX5 · Auto-tracking · $850–$1,300 · needs iPad · great for video coaching</p>
-      <div style="line-height:2.4;">${cxChips}</div>
-    </div>
-
-    <div class="card accent-purple">
-      ${renderField('Questions they asked / notable reactions', 'reaction_notes', '"Can it work with our LMS?" / "This is exactly what our coaches need..." / "What about privacy?"', true)}
-    </div>
-
-    <div class="card">
-      <span class="lbl">Your read on where this is heading</span>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">${leanTiles}</div>
-    </div>
-    ${navRow('prevStep()','nextStep()','Next')}`;
-}
-
-function step5() {
-  const checks = [
-    {field:'security_concern',  label:'IT / security questions came up',          icon:'🔒'},
-    {field:'title1_interest',   label:'Title I, ESSER, or grant funding is relevant', icon:'🏷️'},
-    {field:'hands_on_interest', label:'They want to see or touch a real unit',    icon:'✋'},
-  ];
-  const checkCards = checks.map(c => `
-    <div class="tile ${D[c.field]?'sel':''}" onclick="hiCheck('${c.field}','${D[c.field]?'false':'true'}'); render();" style="margin-bottom:9px;">
-      <span style="font-size:22px;">${c.icon}</span>
-      <div class="tile-label" style="flex:1;">${c.label}</div>
-      <div class="chk">${D[c.field]?'✓':''}</div>
-    </div>`).join('');
-
-  const timelineOptions = [
-    {id:'this_quarter',  label:'This quarter'},
-    {id:'next_semester', label:'Next semester'},
-    {id:'next_year',     label:'Next school year'},
-    {id:'exploring',     label:'Just exploring for now'},
-  ];
-  const timelineTiles = timelineOptions.map(t =>
-    renderTile(null, t.label, null, D.decision_timeline === t.id, `setSingle('decision_timeline','${t.id}')`, 'c-blue', true)
-  ).join('');
-
-  return `
-    ${renderProgress(5, 'Context')}
-    <div class="page-title">A few more things to note</div>
-    <p class="page-sub">Quick context that helps us put together the right path for them.</p>
-
-    <div class="card">
-      <span class="lbl">Anything that came up?</span>
-      ${checkCards}
-    </div>
-
-    <div class="card">
-      <span class="lbl">Decision timeline</span>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">${timelineTiles}</div>
-    </div>
-
-    <div class="card">
-      ${renderField('Existing technology or tools they use', 'existing_tech', 'e.g. existing Swivl robots, video platforms, LMS, coaching software...')}
-    </div>
-    ${navRow('prevStep()','nextStep()','Build Their Path')}`;
-}
-
-function step6() {
-  // Compute recommended steps
-  const recommended = computeRecommendedSteps();
-
-  const nsOptions = NEXT_STEPS.map(ns => {
-    const isRec = recommended.includes(ns.id);
-    const isSel = D.chosen_steps.includes(ns.id);
-    const recBadge = isRec ? `<span class="ns-rec-badge">Recommended</span>` : '';
-    return `<div class="ns-option ${isSel?'sel':''} ${isRec?'recommended':''}" onclick="toggleStep('${ns.id}')">
-      <div class="ns-option chk" style="width:20px;height:20px;border-radius:50%;border:2px solid ${isSel?'#8E47FF':'#E2E2E5'};background:${isSel?'#8E47FF':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;color:#fff;font-weight:800;">${isSel?'✓':''}</div>
-      <span style="font-size:20px;flex-shrink:0;">${ns.icon}</span>
-      <div style="flex:1;">
-        <div style="font-weight:600;font-size:14px;color:${isSel?'#8E47FF':'#000'}">${esc(ns.label)}${recBadge}</div>
-        <div style="font-size:12px;color:#7A7A7A;margin-top:2px;line-height:1.4;">${esc(ns.sub)}</div>
-        <div style="font-size:11px;color:#B0B0C0;margin-top:3px;">Owner: ${esc(ns.owner)}</div>
-      </div>
-    </div>`;
-  }).join('');
-
-  const hasSteps = D.chosen_steps.length > 0;
-
-  return `
-    ${renderProgress(6, 'Next Steps')}
-    <div class="page-title">What makes sense as a next step?</div>
-    <p class="page-sub">Based on everything we heard today, here are our recommendations — select as many as apply, and confirm with them before the call ends.</p>
-
-    <div class="card" style="background:#FAF8FF;border-color:#8E47FF30;">
-      <span class="lbl" style="color:#8E47FF;">Recommended paths are highlighted ↓</span>
-      ${nsOptions}
-    </div>
-
-    ${hasSteps ? `
-    <div class="card accent-green">
-      <div class="grid2">
-        ${renderField('Proposed date / time', 'meeting_time', 'e.g. Thursday 2pm EST, Next Tuesday 10am')}
-        ${renderField('Account Manager', 'am_name', 'Who is taking this forward?')}
-      </div>
-    </div>` : ''}
-
-    <div class="card">
-      ${renderField('Anything else to capture before we close out?', 'ns_notes', 'Final thoughts, commitments made, who else should be in the next conversation...', true)}
-    </div>
-    ${navRow('prevStep()','nextStep()','See Full Summary', !hasSteps)}`;
-}
-
-function step7() {
-  const lean = D.product_lean || computeProductLean();
-  const model = computeDeploymentModel();
-  const chosenStepData = D.chosen_steps.map(id => NEXT_STEPS.find(n => n.id === id)).filter(Boolean);
-
-  const outcomeColor = D.budget_signal === 'ready' ? COLORS.green : D.budget_signal === 'exploring' ? COLORS.orange : COLORS.grey;
-  const outcomeLabel = D.budget_signal === 'ready' ? 'READY TO MOVE FORWARD' : D.budget_signal === 'tight' ? 'BUDGET SENSITIVE' : D.budget_signal === 'grant' ? 'GRANT / TITLE I FUNDED' : 'DISCOVERY STAGE';
-
-  function sumRow(label, value, hi) {
-    if (!value) return '';
-    const cls = hi ? `sum-value ${hi}` : 'sum-value';
-    return `<div class="sum-row"><div class="sum-label">${esc(label)}</div><div class="${cls}">${esc(String(value))}</div></div>`;
+  var stChips='';
+  for(var k=0;k<STAKEHOLDER_ROLES.length;k++){
+    stChips+=Chip('toggleArr','stakeholderRoles',STAKEHOLDER_ROLES[k],STAKEHOLDER_ROLES[k],arr(d.stakeholderRoles).indexOf(STAKEHOLDER_ROLES[k])>=0);
   }
 
-  const expectations = D.expectations.map(id => EXPECTATIONS.find(e=>e.id===id)?.label).filter(Boolean).join(', ');
-  const priorities = D.priorities.map(id => PRIORITIES.find(p=>p.id===id)?.label).filter(Boolean).join(', ');
-  const m2feats = D.m2_reactions.map(id => M2_FEATURES.find(f=>f.id===id)?.label).filter(Boolean).join(', ');
-  const cxfeats = D.cx_reactions.map(id => CX_FEATURES.find(f=>f.id===id)?.label).filter(Boolean).join(', ');
-  const leanLabel = {m2:'M2 + MirrorTalk', cx:'Swivl Robot (CX)', both:'M2 upgrade + CX hybrid', unclear:'Still evaluating options'}[lean] || lean;
+  var secChips='';
+  for(var n=0;n<SECURITY.length;n++){var s=SECURITY[n];secChips+=Chip('toggleArr','securityNeeds',s.id,s.label,arr(d.securityNeeds).indexOf(s.id)>=0);}
 
-  const deployItems = model.items.map(i =>
-    `<div class="deploy-line"><span>${esc(i.label)}</span><span style="color:#8E47FF;font-weight:600;">${esc(i.price)}<span style="color:#7A7A7A;font-weight:400;font-size:12px;"> ${esc(i.note)}</span></span></div>`
-  ).join('');
+  var dmOk=!!trim(d.dmName),tlOk=!!trim(d.timeline),bdOk=!!(trim(d.budget)||trim(d.budgetNotes)),nmOk=!!trim(d.nextDate);
 
-  const nextStepsList = chosenStepData.map(ns =>
-    `<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #EBEBED;">
-      <span style="font-size:18px;">${ns.icon}</span>
-      <div>
-        <div style="font-weight:600;font-size:14px;color:#000;">${esc(ns.label)}</div>
-        <div style="font-size:12px;color:#7A7A7A;margin-top:2px;">${esc(ns.sub)}</div>
-        ${D.meeting_time && ns.id !== 'nurture' ? `<div style="font-size:12px;color:#34C759;font-weight:600;margin-top:3px;">📅 ${esc(D.meeting_time)}</div>` : ''}
-        <div style="font-size:11px;color:#B0B0C0;margin-top:2px;">Owner: ${esc(ns.owner)}</div>
-      </div>
-    </div>`
-  ).join('');
+  return Prog(5,6,'Qualification')+
+  '<div style="margin-bottom:18px"><div class="h2">Wrap-up questions</div>'+
+  '<div class="sub">Ask these before you get off the call. Missing one creates a gray zone that slows the next meeting.</div></div>'+
 
-  const copyBtn = `<button class="btn btn-primary" onclick="copyHandoff()" style="background:${COPY_MSG?'#34C759':'#8E47FF'};border-color:${COPY_MSG?'#34C759':'#8E47FF'};">${COPY_MSG || '📋 Copy to Email / CRM'}</button>`;
-  const saveBtn = `<button class="btn btn-outline ${SAVED?'btn-ghost':''}" onclick="saveRecord()">${SAVED ? '✓ Saved to Records' : '💾 Save Meeting'}</button>`;
-  const pdfBtn = `<button class="btn btn-blue" onclick="exportPDF()">🖨️ Export PDF</button>`;
-  const newBtn = `<button class="btn btn-ghost" onclick="newMeeting()">+ New Meeting</button>`;
+  '<div class="callout"><h4>Fast-close script</h4><p>"Before we wrap — can I confirm your timeline, who would sign off on this, and what the right next step looks like?"</p></div>'+
 
-  return `
-    ${renderProgress(7,'Handoff Summary')}
+  Card('Timeline — when do they want a solution?',
+    '<div class="tiles two">'+tlT+'</div>'+
+    Tx('Notes','timelineNotes','Implementation window, board approval timing, urgency drivers',2)
+  )+
 
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;">
-      <div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-          <h2 style="font-size:22px;font-weight:700;letter-spacing:-.3px;">Meeting Summary</h2>
-          ${tag(outcomeLabel, outcomeColor)}
-        </div>
-        <div style="color:#7A7A7A;font-size:13px;">${esc(D.date)} · ${esc(D.sdrName||'Swivl SDR')}</div>
-      </div>
-      ${logo(22)}
-    </div>
+  Card('Budget — when is the funding window?',
+    '<div class="tiles two">'+bdT+'</div>'+
+    In('Specific date or quarter (if known)','budgetDate','e.g. Q3 FY26, July budget review')+
+    Tx('Budget notes','budgetNotes','Grant, approvals, who controls it',2)
+  )+
 
-    <!-- PROSPECT -->
-    <div class="card accent-purple">
-      <div class="section-head">Prospect</div>
-      ${sumRow('Name', D.name)}
-      ${sumRow('Organization', D.org)}
-      ${sumRow('Role', D.role)}
-      ${sumRow('Grades / Students', D.grade)}
-      ${sumRow('Lead Source', D.source)}
-    </div>
+  '<div class="card"><div class="lbl">Decision maker</div>'+
+    '<div class="grid2">'+
+      '<div>'+In('Their name','dmName','Who signs off?')+'</div>'+
+      '<div>'+In('Their title / role','dmRole','')+'</div>'+
+    '</div>'+
+    '<div class="lbl" style="margin-top:4px">Were they in this meeting?</div>'+
+    '<div class="tiles two">'+dmT+'</div>'+
+  '</div>'+
 
-    <!-- DISCOVERY -->
-    <div class="card">
-      <div class="section-head">Discovery Notes</div>
-      ${sumRow('Their Expectations', expectations)}
-      ${sumRow('Top of Mind', D.notes_opening)}
-      ${sumRow('Mission-Critical Priorities', priorities)}
-      ${sumRow('Pain Point (their words)', D.pain)}
-      ${sumRow('Budget Signal', D.budget_signal)}
-      ${sumRow('Decision Timeline', D.decision_timeline)}
-      ${sumRow('Scale', D.scale)}
-    </div>
+  '<div class="card">'+
+    '<div class="lbl">Which roles need to be in the next meeting?</div>'+
+    '<div class="chips" style="margin-bottom:12px">'+stChips+'</div>'+
+    '<div class="lbl">Names (if known)</div>'+
+    '<textarea class="in" data-f="stakeholderNames" rows="2" placeholder="e.g. Tim Reyes — IT Director, Maria Lopez — Curriculum Coordinator">'+esc(d.stakeholderNames)+'</textarea>'+
+  '</div>'+
 
-    <!-- REACTIONS -->
-    <div class="card">
-      <div class="section-head">Feature Reactions</div>
-      ${sumRow('M2 Features That Resonated', m2feats)}
-      ${sumRow('CX / Robot Interest', cxfeats)}
-      ${sumRow('Reaction Notes', D.reaction_notes)}
-      ${sumRow('Product Direction', leanLabel, 'hi')}
-      ${D.security_concern ? sumRow('IT / Security', '⚠️ Came up — schedule security review') : ''}
-      ${D.title1_interest ? sumRow('Funding', '🏷️ Title I / grant alignment relevant') : ''}
-      ${D.hands_on_interest ? sumRow('Hands-On', '✋ Wants to see / touch a real unit') : ''}
-      ${sumRow('Existing Tech', D.existing_tech)}
-    </div>
+  '<div class="card">'+
+    '<div class="lbl">Security, privacy & procurement needs</div>'+
+    '<div class="chips" style="margin-bottom:12px">'+secChips+'</div>'+
+    Tx('Notes','securityNotes','Vendor approval process, DPA contacts, RFP requirements',2)+
+    In('Have they asked for privacy documentation? (FERPA, COPPA, DPA)','privacyDocsNeeded','Yes / No / In progress')+
+  '</div>'+
 
-    <!-- DEPLOYMENT SNAPSHOT -->
-    <div class="deploy-box">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
-        <div>
-          <div style="font-weight:700;font-size:16px;color:#000;margin-bottom:3px;">📐 ${esc(model.title)}</div>
-          <div style="font-size:13px;color:#7A7A7A;">${esc(model.tagline)} · <em>${esc(D.org || 'this organization')}</em></div>
-        </div>
-        ${tag('Indicative Only', '#7A7A7A')}
-      </div>
-      ${deployItems}
-      <div class="deploy-total">Starter path: ${esc(model.starter)}</div>
-      <div style="font-size:12px;color:#7A7A7A;margin-top:8px;line-height:1.5;">${esc(model.disclaimer)}</div>
-    </div>
+  '<div class="card hl">'+
+    '<div class="lbl">Clarity checklist</div>'+
+    Gate('Decision maker name captured',dmOk,'gDM')+
+    Gate('Timeline captured',tlOk,'gTL')+
+    Gate('Budget window captured',bdOk,'gBD')+
+    Gate('Next meeting date set',nmOk,'gNM')+
+    '<div class="sub" style="margin-top:10px">If any are missing, ask now.</div>'+
+  '</div>'+
 
-    <!-- NEXT STEPS -->
-    <div class="card" style="border-color:#34C75940;border-left:4px solid #34C759;background:#34C75904;">
-      <div class="section-head" style="color:#34C759;">Agreed Next Steps</div>
-      ${nextStepsList || '<div style="color:#7A7A7A;font-size:14px;padding:8px 0;">No steps selected — go back to Step 6 to choose.</div>'}
-      ${D.ns_notes ? sumRow('Additional Notes', D.ns_notes) : ''}
-      ${D.am_name ? sumRow('Account Manager', D.am_name) : ''}
-    </div>
-
-    <!-- ACTION BUTTONS -->
-    <div class="no-print" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
-      ${copyBtn}
-      ${pdfBtn}
-      ${saveBtn}
-      ${newBtn}
-    </div>`;
+  Nav('Back','Next');
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   7. VIEWS
-═══════════════════════════════════════════════════════════════════════════ */
+/* ─── STEP 6 — Route + next meeting ──────────────────────────────── */
+function S6(){
+  var d=S.data;
+  var rec=recNext();
+  var routeTiles='';for(var i=0;i<ROUTES.length;i++){var r=ROUTES[i];routeTiles+=Tile('setRoute','route',r.id,r.label,r.sub,d.route===r.id);}
 
-function viewHome() {
-  const steps = [
-    ['1', COLORS.purple, 'Set the stage', 'Prospect info in before or as the call starts.'],
-    ['2', COLORS.blue,   'Open the conversation', 'Capture expectations and what brought them here.'],
-    ['3', COLORS.orange, 'Track priorities live', 'As Brian presents, note what resonates in real time.'],
-    ['4', '#2AAA6A',     'Log feature reactions', 'Tap what lights them up — M2, robot, both.'],
-    ['5', COLORS.teal,   'Gather key context', 'Timeline, funding signals, existing tech.'],
-    ['6', COLORS.green,  'Build their path', 'Smart next step recommendations based on what we heard.'],
-    ['7', COLORS.grey,   'Handoff summary', 'Copy, export PDF, save — AM-ready in seconds.'],
-  ];
-  const stepsHtml = steps.map(([n,c,t,s],i,arr) => `
-    <div class="home-step">
-      <div class="step-num" style="background:${c}18;color:${c};">${n}</div>
-      <div>
-        <div style="font-weight:600;font-size:14px;margin-bottom:2px;">${t}</div>
-        <div style="font-size:13px;color:#7A7A7A;">${s}</div>
-      </div>
-    </div>`).join('');
+  var qChips='';for(var j=0;j<PRODUCTS.length;j++){var p=PRODUCTS[j];qChips+=Chip('toggleArr','quoteProducts',p.id,p.label,arr(d.quoteProducts||[]).indexOf(p.id)>=0);}
 
-  const recsHtml = RECORDS.length === 0 ? '' : `
-    <div style="font-size:13px;color:#7A7A7A;text-align:center;margin-top:12px;">
-      <span onclick="VIEW='records';render();" style="color:#8E47FF;font-weight:600;cursor:pointer;">View ${RECORDS.length} saved meeting${RECORDS.length!==1?'s':''} →</span>
-    </div>`;
+  var nextCal=buildCal(d.nextDate,'nextDate');
 
-  return `
-    <div class="wrap">
-      <div class="home-hero">
-        ${logo(40)}
-        <h1 style="font-size:28px;font-weight:700;letter-spacing:-.5px;margin:14px 0 10px;">Live Meeting Companion</h1>
-        <p style="color:#7A7A7A;font-size:15px;line-height:1.7;max-width:480px;margin:0 auto;">
-          Fill this out live during every first meeting with Brian. 
-          Questions adapt as you capture — ends with a personalized 
-          next-step plan and AM-ready handoff.
-        </p>
-      </div>
-      <div class="home-steps">
-        <span class="lbl">Meeting flow — 7 steps</span>
-        ${stepsHtml}
-      </div>
-      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-        <button class="btn btn-primary btn-lg" onclick="newMeeting()">▶ Start New Meeting</button>
-        ${RECORDS.length > 0 ? `<button class="btn btn-outline btn-lg" onclick="VIEW='records';render();">📁 Records (${RECORDS.length})</button>` : ''}
-      </div>
-      ${recsHtml}
-    </div>`;
+  return Prog(6,6,'Route & next meeting')+
+  '<div style="margin-bottom:18px"><div class="h2">Route it and lock the date</div>'+
+  '<div class="sub">Pick a route, put a date on the calendar. This is where the deal gets saved or dies.</div></div>'+
+
+  '<div class="callout" id="recBox">'+
+    '<h4 id="recHead">'+esc(rec.head)+'</h4>'+
+    '<p id="recBody">'+esc(rec.why)+'</p>'+
+    '<p style="margin-top:6px"><b>Ask: </b><span id="recAsk">'+esc(rec.ask)+'</span></p>'+
+  '</div>'+
+
+  Card('Pick the route','<div class="tiles">'+routeTiles+'</div>','hl')+
+
+  // Route detail panels
+  '<div id="rPilot" style="display:'+(d.route==='pilot'?'block':'none')+'">'+
+    '<div class="card">'+
+      '<div class="lbl">Pilot details</div>'+
+      In('Pilot setup','pilotType','e.g. 4-week M2 trial, 2 devices, virtual training + on-site device')+
+      In('Pilot start date','pilotStart','e.g. March 23')+
+      In('Schools / grade levels','pilotSchools','e.g. 1 elementary, 1 middle school teacher')+
+    '</div>'+
+  '</div>'+
+
+  '<div id="rQuote" style="display:'+(d.route==='quote'?'block':'none')+'">'+
+    '<div class="card">'+
+      '<div class="lbl">Quote details</div>'+
+      '<div class="sub" style="margin-bottom:10px">Confirm what\'s being quoted, then hand off to AM.</div>'+
+      '<div class="chips" style="margin-bottom:10px">'+qChips+'</div>'+
+      Tx('Quote notes','quoteNotes','Quantities, trade-in units, budget constraints, procurement notes',3)+
+      In('AM name','amName','Which AM takes this?')+
+    '</div>'+
+  '</div>'+
+
+  '<div id="rStake" style="display:'+(d.route==='stakeholder'?'block':'none')+'">'+
+    '<div class="card">'+
+      '<div class="lbl">Who needs to be in the next meeting?</div>'+
+      In('Role needed','nextType','e.g. IT/security director, district curriculum coordinator')+
+      In('Name (if known)','stakeholderNames','')+
+    '</div>'+
+  '</div>'+
+
+  '<div id="rNurture" style="display:'+(d.route==='nurture'?'block':'none')+'">'+
+    '<div class="card">'+
+      '<div class="lbl">Nurture details</div>'+
+      In('Budget category','nurtureCategory','e.g. Budget Q3 FY26, grant pending, board approval cycle')+
+      In('Re-engage date','nurtureDate','e.g. August 15 or 60 days before budget meeting')+
+    '</div>'+
+  '</div>'+
+
+  '<div id="rUnsure" style="display:'+(d.route==='unsure'?'block':'none')+'">'+
+    '<div class="card">'+
+      '<div class="lbl">What information are we missing?</div>'+
+      Tx('','unsureMissing','e.g. Need decision maker name, budget cycle dates, IT security answer',2)+
+    '</div>'+
+  '</div>'+
+
+  '<div class="card">'+
+    '<div class="lbl">Next meeting date</div>'+
+    (trim(d.nextDate)?'<div style="display:inline-flex;align-items:center;gap:10px;background:rgba(142,71,255,.08);border:1.5px solid #8E47FF;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-weight:700;color:#8E47FF">'+esc(prettyDate(d.nextDate))+' <span data-action="clearDate" style="cursor:pointer;font-weight:400;color:#7A7A7A;font-size:13px">✕ clear</span></div>':'')+
+    nextCal+
+    In('Time (optional)','nextNotes','e.g. 10am ET, 30 minutes, virtual via Zoom')+
+  '</div>'+
+
+  '<div class="navrow">'+
+    '<button class="btn o" data-action="prev">← Back</button>'+
+    '<button class="btn p" data-action="genEmail"'+(trim(d.route)?'':' disabled')+'>Generate follow-up email →</button>'+
+  '</div>';
 }
 
-function viewMeeting() {
-  const steps = [null, step1, step2, step3, step4, step5, step6, step7];
-  const fn = steps[STEP];
-  const content = fn ? fn() : '';
-  return stickyHeader() + `<div class="wrap fade">${content}</div>`;
-}
+/* ─── STEP 7 — Follow-up email + summary ──────────────────────────── */
+function S7(){
+  var d=S.data,q=qual();
+  var rec=recNext();
 
-function viewRecords() {
-  const bColor = b => b==='buy'||b==='ready'?COLORS.green:b==='pilot'||b==='exploring'?COLORS.orange:COLORS.grey;
-  const bLabel = b => {
-    const map = {ready:'Ready to Buy',exploring:'Exploring',grant:'Grant/Title I',tight:'Budget Sensitive',budget_cycle:'In Budget Cycle'};
-    return map[b] || 'Discovery';
-  };
-  const rows = RECORDS.length === 0
-    ? `<div style="text-align:center;padding:40px;color:#7A7A7A;font-size:14px;">No meetings saved yet.</div>`
-    : RECORDS.map((r,i) => `
-      <div class="rec-row">
-        <div style="flex:1;">
-          <div style="font-weight:600;font-size:16px;margin-bottom:3px;">${esc(r.data.name||'Unknown')}</div>
-          <div style="font-size:13px;color:#7A7A7A;">${esc(r.data.org||'—')}${r.data.role?' · '+esc(r.data.role):''}${r.data.date?' · '+esc(r.data.date):''}</div>
-          <div style="margin-top:7px;display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
-            ${tag(bLabel(r.data.budget_signal), bColor(r.data.budget_signal))}
-            ${r.data.sdrName ? `<span style="font-size:12px;color:#7A7A7A;">SDR: ${esc(r.data.sdrName)}</span>` : ''}
-            ${r.data.chosen_steps?.length ? `<span style="font-size:12px;color:#8E47FF;font-weight:600;">${r.data.chosen_steps.length} next step${r.data.chosen_steps.length!==1?'s':''}</span>` : ''}
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;flex-shrink:0;">
-          <button class="btn btn-primary btn-sm" onclick="loadRecord(${i})">View</button>
-          <button class="btn btn-red-outline btn-sm" onclick="deleteRecord(${i})">Delete</button>
-        </div>
-      </div>`).join('');
-
-  return `
-    <div style="background:#fff;border-bottom:1px solid #E2E2E5;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;">
-      ${logo(24)}
-      <button class="btn btn-ghost btn-sm" onclick="VIEW='home';render();">← Back</button>
-    </div>
-    <div class="wrap">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;">
-        <div>
-          <h2 style="font-size:22px;font-weight:700;">Meeting Records</h2>
-          <p style="color:#7A7A7A;font-size:13px;margin-top:3px;">${RECORDS.length} saved meeting${RECORDS.length!==1?'s':''}</p>
-        </div>
-      </div>
-      ${rows}
-    </div>`;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   8. ACTIONS
-═══════════════════════════════════════════════════════════════════════════ */
-
-function render() {
-  const app = document.getElementById('app');
-  if (!app) return;
-  if (VIEW === 'home')    app.innerHTML = viewHome();
-  else if (VIEW === 'records') app.innerHTML = viewRecords();
-  else                    app.innerHTML = viewMeeting();
-  validateButtons();
-}
-
-function newMeeting() {
-  D = freshData();
-  STEP = 1;
-  SAVED = false;
-  COPY_MSG = '';
-  ACTIVE_REC_ID = null;
-  VIEW = 'meeting';
-  render();
-  window.scrollTo(0,0);
-}
-
-function nextStep() {
-  if (STEP === 1 && !(D.name.trim() && D.org.trim())) return;
-  if (STEP === 6 && D.chosen_steps.length === 0) return;
-  if (STEP < 7) { STEP++; render(); window.scrollTo(0,0); }
-}
-
-function prevStep() {
-  if (STEP > 1) { STEP--; render(); window.scrollTo(0,0); }
-}
-
-function exitMeeting() {
-  if (!D.name && !D.org) { VIEW = 'home'; render(); return; }
-  if (confirm('Exit this meeting? Any unsaved notes will stay until you start a new one.')) {
-    VIEW = 'home'; render();
+  // Auto-generate email if not yet generated
+  if(!trim(d.emailBody)){
+    var gen=buildEmail();
+    d.emailSubject=gen.subject;
+    d.emailBody=gen.body;
   }
+
+  var featlbls=arr(d.features).map(function(id){var f=byId(M2_FEATS,id);return f?f.label:id;}).join(', ');
+
+  return Prog(6,6,'Follow-up email')+
+
+  '<div style="margin-bottom:18px"><div class="h2">Follow-up email</div>'+
+  '<div class="sub">Edit the email below, then copy or send. The Tier '+q.tier+' score and routing summary are below.</div></div>'+
+
+  '<div class="card hl">'+
+    '<div class="lbl">Subject line</div>'+
+    '<input class="email-subject" data-f="emailSubject" type="text" value="'+esc(d.emailSubject)+'" placeholder="Email subject..." />'+
+    '<div class="lbl" style="margin-top:4px">Body</div>'+
+    '<textarea class="email-editor" data-f="emailBody">'+esc(d.emailBody)+'</textarea>'+
+  '</div>'+
+
+  '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px">'+
+    '<button class="btn p" data-action="copyEmail">Copy email</button>'+
+    '<button class="btn o" data-action="regenEmail">↺ Regenerate</button>'+
+    '<button class="btn o" data-action="emailSelf">Send to my email</button>'+
+  '</div>'+
+
+  '<div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">'+
+    '<span class="tag '+q.tier+'">Tier '+q.tier+'</span>'+
+    '<span class="sub" style="font-size:12px">Score: '+q.score+'/15</span>'+
+    (q.missing.length?'<span class="sub" style="font-size:12px;color:#CC7200">Missing: '+esc(q.missing.join(', '))+'</span>':'')+
+  '</div>'+
+
+  '<div class="callout">'+
+    '<h4>'+esc(rec.head)+'</h4>'+
+    '<p>'+esc(rec.why)+'</p>'+
+    '<p style="margin-top:6px"><b>Ask: </b>'+esc(rec.ask)+'</p>'+
+  '</div>'+
+
+  '<div class="card">'+
+    '<div class="lbl">Meeting summary</div>'+
+    SR('Contact',d.name+(d.role?' · '+d.role:''))+SR('Org',d.org)+SR('Attendees',d.attendees)+
+    SR('Meeting date',d.meetingDate)+SR('SDR',d.sdrName)+SR('Lead source',d.leadSource)+
+    SR('Mission priorities',arr(d.missions).map(function(id){var m=byId(MISSIONS,id);return m?m.label:id;}).join(', '))+
+    SR('Pain point',d.pain)+SR('Success looks like',d.success)+
+    SR('Current Swivl',lbl(CURR_SWIVL,d.currentSwivl))+SR('Swivl count',d.swivlCount)+SR('Current use',d.swivlUse)+
+    SR('Coaching practice',lbl(COACHING,d.coachingPractice))+SR('ELL/ML population',lbl(ELL,d.ellPop))+
+    SR('Solutions discussed',arr(d.products).map(function(id){var p=byId(PRODUCTS,id);return p?p.label:id;}).join(', '))+
+    SR('M2 features',featlbls)+SR('Their reaction',d.reaction)+
+    SR('Decision maker',d.dmName+(d.dmRole?' · '+d.dmRole:''))+SR('DM present',d.dmPresent)+
+    SR('Timeline',lbl(TIMELINES,d.timeline))+SR('Budget',lbl(BUDGET,d.budget)+(d.budgetDate?' · '+d.budgetDate:''))+
+    SR('Stakeholder roles needed',arr(d.stakeholderRoles).join(', '))+SR('Names',d.stakeholderNames)+
+    SR('Security/DPA needs',arr(d.securityNeeds).map(function(id){var s=byId(SECURITY,id);return s?s.label:id;}).join(', '))+
+    SR('Privacy docs requested',d.privacyDocsNeeded)+
+    SR('Route',lbl(ROUTES,d.route))+SR('Next meeting',prettyDate(d.nextDate)+(d.nextNotes?' · '+d.nextNotes:''))+
+  '</div>'+
+
+  '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px">'+
+    '<button class="btn p" data-action="saveRec">'+(S.saved?'✓ Saved':'Save to records')+'</button>'+
+    '<button class="btn o" data-action="copyNotes">Copy internal notes</button>'+
+    '<button class="btn o" data-action="exportPDF">Export PDF</button>'+
+    '<button class="btn o" data-action="newMeeting">New meeting</button>'+
+  '</div>'+
+  '<div style="margin-top:8px"><button class="btn o" data-action="prev">← Edit meeting</button></div>';
 }
 
-function saveRecord() {
-  const existing = ACTIVE_REC_ID ? RECORDS.findIndex(r => r.id === ACTIVE_REC_ID) : -1;
-  if (existing >= 0) {
-    RECORDS[existing] = { id: ACTIVE_REC_ID, savedAt: Date.now(), data: Object.assign({}, D) };
+/* ─── EMAIL BUILDER ──────────────────────────────────────────────── */
+function buildEmail(){
+  var d=S.data;
+  var fname=trim(d.name).split(' ')[0]||'there';
+
+  var feats=arr(d.features).map(function(id){var f=byId(M2_FEATS,id);return f?f.label:id;});
+  var products=arr(d.products).map(function(id){var p=byId(PRODUCTS,id);return p?p.label:id;});
+  var tradeIn=(d.currentSwivl==='active'||d.currentSwivl==='underused')&&arr(d.products).some(function(id){return id==='m2'||id==='bundle';});
+  var ellBig=d.ellPop==='significant'||d.ellPop==='some';
+  var privacy=trim(d.privacyDocsNeeded)&&d.privacyDocsNeeded.toLowerCase().indexOf('yes')>=0;
+  var nextStr=prettyDate(d.nextDate)+(d.nextNotes?' at '+d.nextNotes:'');
+
+  var subject='Following up — '+d.org+(d.meetingDate?' ('+d.meetingDate+')':'');
+
+  var lines=[];
+  function L(x){lines.push(x);}
+
+  L('Hi '+fname+',');
+  L('');
+  if(trim(d.pain)){
+    L('Really valuable time today — especially hearing about '+d.pain.charAt(0).toLowerCase()+d.pain.slice(1).replace(/\.$/,'')+'. That\'s exactly the kind of problem M2 was built to solve.');
   } else {
-    const id = uid();
-    ACTIVE_REC_ID = id;
-    RECORDS.unshift({ id, savedAt: Date.now(), data: Object.assign({}, D) });
+    L('Thanks for the time today — really enjoyed learning more about what you\'re focused on at '+esc(d.org)+'.');
   }
-  saveRecords();
-  SAVED = true;
-  render();
-}
+  L('');
 
-function loadRecord(idx) {
-  const rec = RECORDS[idx];
-  if (!rec) return;
-  D = Object.assign(freshData(), rec.data);
-  ACTIVE_REC_ID = rec.id;
-  STEP = 7;
-  SAVED = true;
-  COPY_MSG = '';
-  VIEW = 'meeting';
-  render();
-  window.scrollTo(0,0);
-}
+  // Key points
+  var points=[];
+  if(feats.length)points.push('We touched on '+feats.join(', ')+(feats.length>1?' — all of which are built into M2.':'.')+'');
+  if(ellBig)points.push('Given your ELL/ML student population, the in-ear translation and on-demand whole-class language support in M2 should be a strong fit.');
+  if(tradeIn)points.push('A quick reminder on the trade-in program — each Swivl robot you return is worth $250 toward an M2, which can meaningfully offset the investment.');
+  if(trim(d.success))points.push('You mentioned success looks like: '+d.success.replace(/\.$/,'')+'.');
 
-function deleteRecord(idx) {
-  if (!confirm('Delete this meeting record?')) return;
-  RECORDS.splice(idx, 1);
-  saveRecords();
-  render();
-}
-
-function buildHandoffText() {
-  const lean = D.product_lean || computeProductLean();
-  const model = computeDeploymentModel();
-  const chosenStepData = D.chosen_steps.map(id => NEXT_STEPS.find(n => n.id === id)).filter(Boolean);
-  const expectations = D.expectations.map(id => EXPECTATIONS.find(e=>e.id===id)?.label).filter(Boolean).join(', ');
-  const priorities = D.priorities.map(id => PRIORITIES.find(p=>p.id===id)?.label).filter(Boolean).join(', ');
-  const m2feats = D.m2_reactions.map(id => M2_FEATURES.find(f=>f.id===id)?.label).filter(Boolean).join(', ');
-  const cxfeats = D.cx_reactions.map(id => CX_FEATURES.find(f=>f.id===id)?.label).filter(Boolean).join(', ');
-
-  const lines = [
-    'SWIVL MEETING HANDOFF — ' + (D.date||todayStr()).toUpperCase(),
-    '─────────────────────────────────────',
-    '',
-    'PROSPECT',
-    `  Name:              ${D.name||'N/A'}`,
-    `  Organization:      ${D.org||'N/A'}`,
-    `  Role:              ${D.role||'N/A'}`,
-    `  Grades/Students:   ${D.grade||'N/A'}`,
-    `  Lead Source:       ${D.source||'N/A'}`,
-    `  SDR:               ${D.sdrName||'N/A'}`,
-    '',
-    'DISCOVERY',
-    `  Expectations:      ${expectations||'N/A'}`,
-    `  Top of Mind:       ${D.notes_opening||'N/A'}`,
-    `  Priorities:        ${priorities||'N/A'}`,
-    `  Pain Point:        ${D.pain||'N/A'}`,
-    `  Budget Signal:     ${D.budget_signal||'N/A'}`,
-    `  Timeline:          ${D.decision_timeline||'N/A'}`,
-    `  Scale:             ${D.scale||'N/A'}`,
-    '',
-    'REACTIONS',
-    `  M2 Features:       ${m2feats||'N/A'}`,
-    `  CX/Robot Interest: ${cxfeats||'N/A'}`,
-    `  Reaction Notes:    ${D.reaction_notes||'N/A'}`,
-    `  Product Direction: ${model.title}`,
-    `  IT/Security:       ${D.security_concern?'Yes — came up in conversation':'No'}`,
-    `  Title I/Grant:     ${D.title1_interest?'Yes — relevant to this prospect':'No'}`,
-    `  Existing Tech:     ${D.existing_tech||'N/A'}`,
-    '',
-    'INDICATIVE DEPLOYMENT',
-    `  Path:              ${model.title} — ${model.tagline}`,
-    `  Starter:           ${model.starter}`,
-    `  Range:             ${model.range} (AM to formalize)`,
-    '',
-    'AGREED NEXT STEPS',
-    ...chosenStepData.map(ns => `  ${ns.icon} ${ns.label} (${ns.owner})` + (D.meeting_time && ns.id!=='nurture' ? ` — ${D.meeting_time}` : '')),
-    D.am_name ? `  AM Assigned: ${D.am_name}` : '',
-    D.ns_notes ? `  Notes: ${D.ns_notes}` : '',
-    '',
-    '─────────────────────────────────────',
-    'Swivl · swivl.com',
-  ].filter(l => l !== null);
-
-  return lines.join('\n');
-}
-
-function copyHandoff() {
-  const text = buildHandoffText();
-  function done() { COPY_MSG = '✓ Copied!'; render(); setTimeout(() => { COPY_MSG = ''; render(); }, 2500); }
-  function fallback() {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
-    document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); done(); } catch(e) { alert('Please copy manually:\n\n' + text); }
-    document.body.removeChild(ta);
-  }
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(done).catch(fallback);
-  } else { fallback(); }
-}
-
-function exportPDF() {
-  const lean = D.product_lean || computeProductLean();
-  const model = computeDeploymentModel();
-  const chosenStepData = D.chosen_steps.map(id => NEXT_STEPS.find(n => n.id === id)).filter(Boolean);
-  const expectations = D.expectations.map(id => EXPECTATIONS.find(e=>e.id===id)?.label).filter(Boolean).join(', ');
-  const priorities = D.priorities.map(id => PRIORITIES.find(p=>p.id===id)?.label).filter(Boolean).join(', ');
-  const m2feats = D.m2_reactions.map(id => M2_FEATURES.find(f=>f.id===id)?.label).filter(Boolean).join(', ');
-  const cxfeats = D.cx_reactions.map(id => CX_FEATURES.find(f=>f.id===id)?.label).filter(Boolean).join(', ');
-
-  function r(label, val) {
-    if (!val) return '';
-    return `<tr><td style="color:#7A7A7A;font-size:12px;padding:7px 10px 7px 0;width:180px;vertical-align:top;border-bottom:1px solid #EBEBED;font-weight:500;">${label}</td><td style="font-size:13px;padding:7px 0;border-bottom:1px solid #EBEBED;line-height:1.5;">${val}</td></tr>`;
-  }
-  function sec(title, rows) {
-    return `<div style="background:#fff;border:1.5px solid #E2E2E5;border-radius:10px;padding:18px 20px;margin-bottom:12px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#7A7A7A;margin-bottom:10px;">${title}</div><table style="width:100%;border-collapse:collapse;">${rows}</table></div>`;
+  if(points.length){
+    L('A few things worth highlighting from our conversation:');
+    L('');
+    for(var i=0;i<points.length;i++)L('  • '+points[i]);
+    L('');
   }
 
-  const deployItemsHtml = model.items.map(i =>
-    `<tr><td style="font-size:13px;padding:7px 0;border-bottom:1px solid #EBEBED;">${i.label}</td><td style="font-size:13px;padding:7px 0;border-bottom:1px solid #EBEBED;text-align:right;color:#8E47FF;font-weight:600;">${i.price} <span style="color:#7A7A7A;font-weight:400;font-size:11px;">${i.note}</span></td></tr>`
-  ).join('');
+  // Next step
+  if(trim(d.nextDate)||d.route){
+    L('Next step:');
+    if(d.route==='pilot')L('  We\'ll get '+(trim(d.pilotType)||'devices to you')+(trim(d.pilotStart)?' starting around '+d.pilotStart:'')+'. '+(trim(d.pilotSchools)?'Plan is to try it at: '+d.pilotSchools+'. ':'')+' I\'ll follow up with a training invite and confirm shipping.');
+    else if(d.route==='quote')L('  I\'m getting the pricing together and will connect you with '+(trim(d.amName)||'our account team')+' for a proper walkthrough of numbers.');
+    else if(d.route==='stakeholder')L('  For the next meeting, it would be great to include '+(trim(d.nextType)||arr(d.stakeholderRoles).join(' and ')||'the right stakeholders')+' so we can answer all the right questions in one go.');
+    else if(d.route==='nurture')L('  I\'ll reach back out when you\'re closer to '+(trim(d.nurtureCategory)||'your budget window')+(trim(d.nurtureDate)?' around '+d.nurtureDate:'')+'. Happy to revisit any time before then too.');
+    else if(d.route==='unsure')L('  I\'d love a quick 15-minute call to get a couple of answers and make sure we\'re pointing in the right direction for you.');
+    if(trim(nextStr))L('  '+(d.route==='nurture'?'We\'ll re-connect: ':'Next meeting: ')+nextStr+'.');
+    L('');
+  }
 
-  const nsHtml = chosenStepData.map(ns =>
-    `<div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid #EBEBED;align-items:flex-start;">
-      <span style="font-size:18px;">${ns.icon}</span>
-      <div><div style="font-weight:600;font-size:14px;">${ns.label}</div>
-      <div style="font-size:12px;color:#7A7A7A;margin-top:2px;">${ns.sub}</div>
-      ${D.meeting_time && ns.id!=='nurture' ? `<div style="font-size:12px;color:#34C759;font-weight:600;margin-top:2px;">📅 ${D.meeting_time}</div>` : ''}
-      <div style="font-size:11px;color:#B0B0C0;margin-top:2px;">Owner: ${ns.owner}</div></div>
-    </div>`
-  ).join('');
+  if(privacy)L('I\'ll also get the data privacy documentation (FERPA / COPPA / DPA) sent over so your team can review it ahead of anything else.');
+  L('');
+  L('Please feel free to loop in anyone from '+d.org+' who should be part of the next conversation.');
+  L('');
+  L('Best,');
+  L(trim(d.sdrName)||'');
+  L('Swivl');
 
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Swivl Handoff — ${D.name||'Prospect'}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
-    <style>
-      *{box-sizing:border-box;margin:0;padding:0}
-      body{font-family:'Inter',-apple-system,sans-serif;background:#fff;color:#000;padding:40px;max-width:820px;margin:0 auto;-webkit-font-smoothing:antialiased}
-      .btn{background:#8E47FF;color:#fff;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-block;margin-top:20px}
-      @media print{.btn{display:none!important}body{padding:20px}}
-    </style>
-    </head><body>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #E2E2E5;">
-      <div>
-        <h1 style="font-size:24px;font-weight:700;margin-bottom:6px;">Meeting Handoff Summary</h1>
-        <div style="color:#7A7A7A;font-size:13px;">${D.date||todayStr()} · ${D.sdrName||'Swivl SDR'}</div>
-      </div>
-      <div style="font-family:Georgia,serif;font-style:italic;font-weight:700;font-size:28px;">Swivl</div>
-    </div>
-    ${sec('Prospect', r('Name',D.name)+r('Organization',D.org)+r('Role',D.role)+r('Grades',D.grade)+r('Lead Source',D.source))}
-    ${sec('Discovery', r('Expectations',expectations)+r('Top of Mind',D.notes_opening)+r('Priorities',priorities)+r('Pain Point',D.pain)+r('Budget Signal',D.budget_signal)+r('Timeline',D.decision_timeline)+r('Scale',D.scale))}
-    ${sec('Reactions', r('M2 Features',m2feats)+r('CX/Robot Interest',cxfeats)+r('Notes',D.reaction_notes)+r('IT/Security',D.security_concern?'Yes — came up':'')+r('Title I/Grant',D.title1_interest?'Yes — relevant':''))}
-    <div style="background:linear-gradient(135deg,#FAF8FF,#F5F5F7);border:2px solid rgba(142,71,255,.2);border-radius:12px;padding:20px;margin-bottom:12px;">
-      <div style="font-weight:700;font-size:16px;margin-bottom:4px;">📐 ${model.title}</div>
-      <div style="font-size:13px;color:#7A7A7A;margin-bottom:14px;">${model.tagline} · ${D.org||'this organization'}</div>
-      <table style="width:100%;border-collapse:collapse;">${deployItemsHtml}</table>
-      <div style="font-size:15px;font-weight:700;color:#8E47FF;margin-top:12px;">Starter path: ${model.starter}</div>
-      <div style="font-size:12px;color:#7A7A7A;margin-top:6px;">${model.disclaimer}</div>
-    </div>
-    <div style="background:#fff;border:1.5px solid rgba(52,199,89,.4);border-left:4px solid #34C759;border-radius:10px;padding:18px 20px;margin-bottom:12px;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#34C759;margin-bottom:12px;">Agreed Next Steps</div>
-      ${nsHtml||'<div style="color:#7A7A7A;font-size:14px;">None captured</div>'}
-      ${D.am_name?`<div style="margin-top:10px;font-size:13px;"><strong>AM:</strong> ${D.am_name}</div>`:''}
-    </div>
-    <div style="text-align:center;margin-top:28px;padding-top:16px;border-top:1px solid #E2E2E5;">
-      <div style="font-size:12px;color:#7A7A7A;margin-bottom:12px;">Swivl · swivl.com · A reflective technology company</div>
-      <button class="btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
-    </div>
-    </body></html>`;
-
-  const w = window.open('', '_blank');
-  if (w) { w.document.write(html); w.document.close(); setTimeout(() => w.print(), 900); }
-  else { alert('Pop-ups are blocked. Please allow pop-ups to use PDF export.'); }
+  return{subject:subject,body:lines.join('\n')};
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   9. INIT
-═══════════════════════════════════════════════════════════════════════════ */
+/* ─── ACTIONS ────────────────────────────────────────────────────── */
+function goHome(){S.view='home';render();}
+function goRecords(){S.view='records';render();}
+function startMeeting(){
+  S.data=fresh();var p=S.profile;
+  if(p.sdrName)S.data.sdrName=p.sdrName;if(p.sdrEmail)S.data.sdrEmail=p.sdrEmail;if(p.leadSource)S.data.leadSource=p.leadSource;
+  S.step=1;S.view='meeting';S.saved=false;S.id=null;render();
+}
+function newMeeting(){startMeeting();}
+
+function nextStep(){
+  if(S.step===1&&!(trim(S.data.name)&&trim(S.data.org))){toast('Add a contact name and organization to continue.');return;}
+  if(S.step===6&&!trim(S.data.route)){toast('Pick a route to continue.');return;}
+  if(S.step<7){S.step++;render();}
+}
+function prevStep(){if(S.step>1){S.step--;render();}}
+function genEmail(){
+  S.data.emailSubject='';S.data.emailBody=''; // force regen
+  S.step=7;render();
+}
+function regenEmail(){
+  var gen=buildEmail();S.data.emailSubject=gen.subject;S.data.emailBody=gen.body;
+  // update DOM without rerender
+  var sb=document.querySelector('.email-subject');var eb=document.querySelector('.email-editor');
+  if(sb)sb.value=S.data.emailSubject;if(eb)eb.value=S.data.emailBody;
+  toast('Email regenerated.');
+}
+
+function toggleArr(key,val,el){
+  var a=arr(S.data[key]).slice(0),idx=a.indexOf(val),sel;
+  if(idx>=0){a.splice(idx,1);sel=false;}else{a.push(val);sel=true;}
+  S.data[key]=a;
+  if(el&&el.classList.contains('tile'))setTileSel(el,sel);
+  if(el&&el.classList.contains('chip'))setChipSel(el,sel);
+  // conditional UI
+  if(key==='missions'){var w=document.getElementById('mOth');if(w)w.style.display=(a.indexOf('other')>=0?'block':'none');}
+  if(key==='products'){var w2=document.getElementById('pOth');if(w2)w2.style.display=(a.indexOf('other')>=0?'block':'none');}
+  if(S.step===5)updateGates();
+}
+
+function setC(key,val,el){
+  S.data[key]=val;
+  var nodes=document.querySelectorAll('[data-action="setC"][data-key="'+key+'"]');
+  for(var i=0;i<nodes.length;i++)setTileSel(nodes[i],nodes[i].getAttribute('data-value')===val);
+  // conditional hints
+  if(key==='currentSwivl'){
+    var ok=val==='active'||val==='underused';
+    var sw=document.getElementById('swD');if(sw)sw.style.display=(ok?'block':'none');
+    var th=document.getElementById('tIn');if(th)th.style.display=(ok?'block':'none');
+  }
+  if(key==='coachingPractice'){var ch=document.getElementById('coHint');if(ch)ch.style.display=(val==='no'||val==='open'?'block':'none');}
+  if(key==='ellPop'){var eh=document.getElementById('ellHint');if(eh)eh.style.display=(val==='significant'||val==='some'?'block':'none');}
+  if(S.step===5)updateGates();
+  if(S.step===6)updateRecBox();
+}
+
+function setRoute(val){
+  S.data.route=val;
+  var nodes=document.querySelectorAll('[data-action="setRoute"]');
+  for(var i=0;i<nodes.length;i++)setTileSel(nodes[i],nodes[i].getAttribute('data-value')===val);
+  var ids=['Pilot','Quote','Stake','Nurture','Unsure'];
+  var map={pilot:'rPilot',quote:'rQuote',stakeholder:'rStake',nurture:'rNurture',unsure:'rUnsure'};
+  for(var k in map){var el=document.getElementById(map[k]);if(el)el.style.display=(val===k?'block':'none');}
+  var nb=document.querySelector('button[data-action="genEmail"]');if(nb)nb.disabled=!trim(val);
+  updateRecBox();
+}
+
+function toggleFeat(val,el){
+  var a=arr(S.data.features).slice(0),idx=a.indexOf(val);
+  if(idx>=0){a.splice(idx,1);S.data.features=a;setTileSel(el,false);}
+  else{
+    if(a.length>=FEAT_LIMIT){toast('Limit '+FEAT_LIMIT+'. Unselect one to add another.');return;}
+    a.push(val);S.data.features=a;setTileSel(el,true);
+  }
+  var c=document.getElementById('featCnt');if(c)c.textContent=String(arr(S.data.features).length);
+}
+
+function calPick(iso,field){
+  S.data[field]=iso;
+  // rebuild calendar section
+  if(S.step===5)updateGates();
+  if(S.step===6){
+    // re-render just the calendar card for performance
+    render();
+  }
+}
+function calNav(dir){
+  CAL.month+=dir;
+  if(CAL.month>11){CAL.month=0;CAL.year++;}
+  if(CAL.month<0){CAL.month=11;CAL.year--;}
+  // re-render step
+  var calWrap=document.querySelector('.cal-wrap');
+  if(calWrap){
+    var tmp=document.createElement('div');
+    tmp.innerHTML=buildCal(S.data.nextDate,'nextDate');
+    calWrap.parentNode.replaceChild(tmp.firstChild,calWrap);
+  }
+}
+function clearDate(){S.data.nextDate='';render();}
+
+function setTileSel(el,sel){
+  if(!el)return;
+  var dot=el.querySelector('.tile-dot');
+  if(sel){el.classList.add('sel');if(dot)dot.innerHTML='<span class="ck">✓</span>';}
+  else{el.classList.remove('sel');if(dot)dot.innerHTML='';}
+  var t=el.querySelector('.tile-title');if(t)t.style.color=sel?'#8E47FF':'#000';
+}
+function setChipSel(el,sel){if(!el)return;if(sel)el.classList.add('sel');else el.classList.remove('sel');}
+
+function updateGates(){
+  var d=S.data;
+  sg('gDM',!!trim(d.dmName));sg('gTL',!!trim(d.timeline));
+  sg('gBD',!!(trim(d.budget)||trim(d.budgetNotes)));sg('gNM',!!trim(d.nextDate));
+}
+function sg(id,ok){var el=document.getElementById(id);if(!el)return;el.textContent=ok?'OK':'Missing';el.className=ok?'ok':'miss';}
+
+function updateRecBox(){
+  var rec=recNext();
+  var h=document.getElementById('recHead'),b=document.getElementById('recBody'),a=document.getElementById('recAsk');
+  if(h)h.textContent=rec.head;if(b)b.textContent=rec.why;if(a)a.textContent=rec.ask;
+}
+
+function syncField(el){
+  var f=el.getAttribute('data-f');if(!f)return;
+  S.data[f]=el.value;
+  if(f==='sdrName'){S.profile.sdrName=trim(el.value);saveProf();}
+  if(f==='sdrEmail'){S.profile.sdrEmail=trim(el.value);saveProf();}
+  if(f==='leadSource'){S.profile.leadSource=trim(el.value);saveProf();}
+  if(S.step===1){var btn=document.querySelector('button[data-action="next"]');if(btn)btn.disabled=!(trim(S.data.name)&&trim(S.data.org));}
+  if(S.step===5)updateGates();
+  if(S.step===6)updateRecBox();
+}
+
+/* ─── SAVE / COPY / EXPORT ───────────────────────────────────────── */
+function saveRec(){
+  var id=S.id||uid();
+  var idx=-1;for(var i=0;i<S.records.length;i++)if(S.records[i].id===id){idx=i;break;}
+  var rec={id:id,savedAt:Date.now(),data:JSON.parse(JSON.stringify(S.data))};
+  if(idx>=0)S.records[idx]=rec;else S.records.unshift(rec);
+  S.id=id;S.saved=true;saveRecs();toast('Saved.');render();
+}
+function viewRec(id){
+  var rec=null;for(var i=0;i<S.records.length;i++)if(S.records[i].id===id){rec=S.records[i];break;}
+  if(!rec)return;
+  S.data=rec.data||fresh();
+  ['missions','features','products','stakeholderRoles','securityNeeds','quoteProducts'].forEach(function(k){if(!Array.isArray(S.data[k]))S.data[k]=[];});
+  S.id=rec.id;S.saved=true;S.view='meeting';S.step=7;render();
+}
+function delRec(id){
+  if(!confirm('Delete this record?'))return;
+  S.records=S.records.filter(function(r){return r.id!==id;});
+  saveRecs();render();
+}
+
+function copyEmail(){
+  var sb=document.querySelector('.email-subject'),eb=document.querySelector('.email-editor');
+  var text='Subject: '+(sb?sb.value:S.data.emailSubject)+'\n\n'+(eb?eb.value:S.data.emailBody);
+  clip(text,'Email copied.');
+}
+function copyNotes(){clip(buildNotes(),'Internal notes copied.');}
+function emailSelf(){
+  var d=S.data;
+  if(!trim(d.sdrEmail)){toast('Add your email in Step 1 first.');return;}
+  var sb=document.querySelector('.email-subject'),eb=document.querySelector('.email-editor');
+  var subj=sb?sb.value:d.emailSubject,body=eb?eb.value:d.emailBody;
+  window.location.href='mailto:'+encodeURIComponent(d.sdrEmail)+'?subject='+encodeURIComponent('DRAFT: '+subj)+'&body='+encodeURIComponent(body);
+}
+
+function buildNotes(){
+  var d=S.data,q=qual();
+  function jA(a,src){return arr(a).map(function(id){var o=byId(src,id);return o?o.label:id;}).join(', ');}
+  var L=[],push=function(x){L.push(x);};
+  push('SWIVL SDR MEETING NOTES');push('Date: '+d.meetingDate);push('Tier: '+q.tier+' ('+q.score+'/15)');push('Route: '+lbl(ROUTES,d.route));push('');
+  push('PROSPECT');if(d.name)push('  '+d.name+(d.role?' · '+d.role:'')+' — '+d.org);if(d.attendees)push('  Also: '+d.attendees);if(d.sdrName)push('  SDR: '+d.sdrName);push('');
+  push('DISCOVERY');if(d.pain)push('  Pain: '+d.pain);if(d.success)push('  Success: '+d.success);push('  Missions: '+jA(d.missions,MISSIONS));push('');
+  push('SETUP');push('  Swivl: '+lbl(CURR_SWIVL,d.currentSwivl)+(d.swivlCount?' ('+d.swivlCount+')':''));push('  Coaching: '+lbl(COACHING,d.coachingPractice));push('  ELL/ML: '+lbl(ELL,d.ellPop));push('');
+  push('PRODUCTS & SIGNALS');push('  Discussing: '+jA(d.products,PRODUCTS));push('  Features: '+arr(d.features).map(function(id){var f=byId(M2_FEATS,id);return f?f.label:id;}).join(', '));if(d.reaction)push('  Reaction: '+d.reaction);push('');
+  push('MEDDPICC-LITE');push('  DM: '+d.dmName+(d.dmRole?' · '+d.dmRole:''));push('  DM present: '+d.dmPresent);push('  Timeline: '+lbl(TIMELINES,d.timeline));push('  Budget: '+lbl(BUDGET,d.budget)+(d.budgetDate?' · '+d.budgetDate:''));push('  Stakeholders: '+arr(d.stakeholderRoles).join(', '));push('  Security: '+jA(d.securityNeeds,SECURITY));push('');
+  push('NEXT MEETING');push('  Route: '+lbl(ROUTES,d.route));push('  Date: '+prettyDate(d.nextDate)+(d.nextNotes?' · '+d.nextNotes:''));if(q.missing.length)push('  Missing: '+q.missing.join(', '));
+  return L.join('\n');
+}
+
+function clip(text,msg){
+  function fb(){var ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast(msg);}catch(e){alert(text);}document.body.removeChild(ta);}
+  try{navigator.clipboard?navigator.clipboard.writeText(text).then(function(){toast(msg);}).catch(fb):fb();}catch(e){fb();}
+}
+
+function exportPDF(){
+  var d=S.data,q=qual();
+  var sb=document.querySelector('.email-subject'),eb=document.querySelector('.email-editor');
+  var emailSub=sb?sb.value:d.emailSubject,emailBod=eb?eb.value:d.emailBody;
+  var tcol=q.tier==='A'?'#1A9440':q.tier==='B'?'#8E47FF':q.tier==='C'?'#CC7200':'#D4262B';
+  function PR(l,v){if(!trim(String(v||'')))return'';return'<tr><td style="color:#7A7A7A;font-size:12px;font-weight:600;padding:7px 10px 7px 0;width:180px;vertical-align:top;border-bottom:1px solid #F2F2F5">'+esc(l)+'</td><td style="font-size:13px;padding:7px 0;border-bottom:1px solid #F2F2F5;line-height:1.5">'+esc(String(v))+'</td></tr>';}
+  function PS(t,r){return'<div style="background:#fff;border:1.5px solid #E8E8ED;border-radius:12px;padding:18px;margin-bottom:12px"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:#7A7A7A;margin-bottom:10px">'+esc(t)+'</div><table style="width:100%;border-collapse:collapse">'+r+'</table></div>';}
+  function jA(a,src){return arr(a).map(function(id){var o=byId(src,id);return o?o.label:id;}).join(', ');}
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Swivl Meeting Notes</title>'+
+  '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"/>'+
+  '<style>body{font-family:Inter,sans-serif;background:#fff;color:#000;padding:36px;max-width:820px;margin:0 auto;-webkit-font-smoothing:antialiased}pre{font-family:Inter,sans-serif;white-space:pre-wrap;font-size:14px;line-height:1.65;background:#F5F5F7;padding:18px;border-radius:12px;margin:0}.btn{background:#8E47FF;color:#fff;border:none;border-radius:10px;padding:12px 20px;font-size:14px;font-weight:700;cursor:pointer;margin-top:18px}@media print{.btn{display:none}body{padding:18px}}</style></head><body>'+
+  '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid #E8E8ED">'+
+  '<div><div style="font-size:22px;font-weight:800;margin-bottom:6px">Meeting notes — '+esc(d.org)+'</div>'+
+  '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+
+  '<span style="background:'+tcol+'22;color:'+tcol+';padding:3px 8px;border-radius:6px;font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase">Tier '+esc(q.tier)+'</span>'+
+  '<span style="color:#7A7A7A;font-size:12px">Score: '+q.score+'/15</span>'+
+  '<span style="color:#7A7A7A;font-size:12px">'+esc(d.meetingDate)+'</span>'+
+  '<span style="color:#7A7A7A;font-size:12px">Route: '+esc(lbl(ROUTES,d.route))+'</span></div></div>'+
+  '<img src="'+WM+'" alt="Swivl" style="height:22px;width:auto"/></div>'+
+
+  '<div style="margin-bottom:16px"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:#7A7A7A;margin-bottom:10px">Follow-up email</div>'+
+  '<div style="font-weight:700;font-size:14px;margin-bottom:8px;padding:10px 14px;background:#F5F5F7;border-radius:8px">Subject: '+esc(emailSub)+'</div>'+
+  '<pre>'+esc(emailBod)+'</pre></div>'+
+
+  PS('Prospect',PR('Contact',d.name+(d.role?' · '+d.role:''))+PR('Org',d.org)+PR('Attendees',d.attendees)+PR('SDR',d.sdrName)+PR('Lead source',d.leadSource)+PR('Meeting date',d.meetingDate))+
+  PS('Discovery',PR('Mission priorities',jA(d.missions,MISSIONS))+PR('Pain point',d.pain)+PR('Success looks like',d.success))+
+  PS('Current setup',PR('Swivl ownership',lbl(CURR_SWIVL,d.currentSwivl))+PR('Count',d.swivlCount)+PR('Current use',d.swivlUse)+PR('Coaching practice',lbl(COACHING,d.coachingPractice))+PR('ELL/ML population',lbl(ELL,d.ellPop)))+
+  PS('Products & signals',PR('Solutions discussed',jA(d.products,PRODUCTS))+PR('M2 features',arr(d.features).map(function(id){var f=byId(M2_FEATS,id);return f?f.label:id;}).join(', '))+PR('Their reaction',d.reaction))+
+  PS('MEDDPICC-lite',PR('Decision maker',d.dmName+(d.dmRole?' · '+d.dmRole:''))+PR('DM present',d.dmPresent)+PR('Timeline',lbl(TIMELINES,d.timeline))+PR('Budget',lbl(BUDGET,d.budget)+(d.budgetDate?' · '+d.budgetDate:''))+PR('Budget notes',d.budgetNotes)+PR('Stakeholder roles',arr(d.stakeholderRoles).join(', '))+PR('Names',d.stakeholderNames)+PR('Security/DPA',jA(d.securityNeeds,SECURITY))+PR('Privacy docs',d.privacyDocsNeeded))+
+  PS('Route & next meeting',PR('Route',lbl(ROUTES,d.route))+PR('Next meeting',prettyDate(d.nextDate)+(d.nextNotes?' · '+d.nextNotes:''))+(q.missing.length?PR('Missing items',q.missing.join(', ')):''  ))+
+  '<div style="text-align:center;margin-top:18px;padding-top:14px;border-top:1px solid #E8E8ED"><div style="color:#7A7A7A;font-size:12px;margin-bottom:10px">Swivl SDR Meeting Tool</div><button class="btn" onclick="window.print()">Print / Save as PDF</button></div>'+
+  '</body></html>';
+
+  var w=window.open('','_blank');if(!w){alert('Allow pop-ups to export.');return;}
+  w.document.write(html);w.document.close();
+}
+
+/* ─── RENDER ─────────────────────────────────────────────────────── */
+function render(){
+  var app=document.getElementById('app');if(!app)return;
+  if(S.view==='home')app.innerHTML=HomeView();
+  else if(S.view==='records')app.innerHTML=RecordsView();
+  else app.innerHTML=MeetingView();
+}
+
+/* ─── EVENT DELEGATION ───────────────────────────────────────────── */
+document.addEventListener('click',function(e){
+  var el=e.target&&e.target.closest?e.target.closest('[data-action]'):null;
+  if(!el)return;
+  var a=el.getAttribute('data-action');
+  if(a==='goHome')return goHome();
+  if(a==='goRecords')return goRecords();
+  if(a==='start')return startMeeting();
+  if(a==='newMeeting')return newMeeting();
+  if(a==='prev')return prevStep();
+  if(a==='next')return nextStep();
+  if(a==='genEmail')return genEmail();
+  if(a==='regenEmail')return regenEmail();
+  if(a==='toggleArr'){var k=el.getAttribute('data-key'),v=el.getAttribute('data-value');return toggleArr(k,v,el);}
+  if(a==='setC'){var ck=el.getAttribute('data-key'),cv=el.getAttribute('data-value');return setC(ck,cv,el);}
+  if(a==='setRoute')return setRoute(el.getAttribute('data-value'));
+  if(a==='toggleFeat')return toggleFeat(el.getAttribute('data-value'),el);
+  if(a==='calPrev')return calNav(-1);
+  if(a==='calNext')return calNav(1);
+  if(a==='calPick'){var iso=el.getAttribute('data-value'),field=el.getAttribute('data-field');return calPick(iso,field);}
+  if(a==='clearDate')return clearDate();
+  if(a==='saveRec')return saveRec();
+  if(a==='viewRec')return viewRec(el.getAttribute('data-id'));
+  if(a==='delRec')return delRec(el.getAttribute('data-id'));
+  if(a==='copyEmail')return copyEmail();
+  if(a==='regenEmail')return regenEmail();
+  if(a==='emailSelf')return emailSelf();
+  if(a==='copyNotes')return copyNotes();
+  if(a==='exportPDF')return exportPDF();
+});
+document.addEventListener('input',function(e){var el=e.target;if(el&&el.getAttribute&&el.getAttribute('data-f'))syncField(el);});
+
 render();
 </script>
 </body>
